@@ -18,8 +18,10 @@ const Navbar = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch(setIsLoggedIn(localStorage.getItem("isLoggedIn")));
-  }, []);
+    if (localStorage.getItem("isLoggedIn") !== null) {
+      dispatch(setIsLoggedIn(localStorage.getItem("isLoggedIn")));
+    }
+  }, [isLoggedIn]);
 
   useEffect(() => {
     const root = window.document.documentElement;
