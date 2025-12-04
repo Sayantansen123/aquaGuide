@@ -19,6 +19,8 @@ import NotFound from "./pages/NotFound";
 import { Provider } from "react-redux";
 import store from "./store/store";
 import PublicRoute from "./routes/publicRoute";
+import Profile from "./pages/Profile";
+import PrivateRoute from "./routes/privateRoute";
 
 const queryClient = new QueryClient();
 
@@ -74,6 +76,18 @@ const App = () => (
                 </Layout>
               }
             />
+
+            <Route element={<PrivateRoute />}>
+              <Route
+                path="/profile"
+                element={
+                  <Layout>
+                    <Profile />
+                  </Layout>
+                }
+              />
+            </Route>
+
             <Route
               path="/community-chat"
               element={

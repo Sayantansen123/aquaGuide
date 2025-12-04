@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Search, Moon, Sun, Menu, X } from "lucide-react";
+import { Search, Moon, Sun, Menu, X, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -8,10 +8,18 @@ import { RootState } from "@/store/store";
 import { useDispatch, useSelector } from "react-redux";
 import { logout, setIsLoggedIn } from "@/store/userSlice";
 import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@radix-ui/react-dropdown-menu";
+import ChangePasswordModal from "./ChangePasswordModal";
 
 const Navbar = () => {
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
   const [isOpen, setIsOpen] = useState(false);
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
 
   const { isLoggedIn } = useSelector((state: RootState) => state.user);
 
@@ -34,127 +42,165 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
-      <div className="container mx-auto px-4 py-3">
-        <div className="flex items-center justify-between gap-4">
-          <Link
-            to="/"
-            className="text-xl md:text-2xl font-bold ocean-gradient bg-clip-text text-transparent"
-          >
-            Aqua Guide
-          </Link>
+    <>
+      <nav className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center justify-between gap-4">
+            <Link
+              to="/"
+              className="text-xl md:text-2xl font-bold ocean-gradient bg-clip-text text-transparent"
+            >
+              Aqua Guide
+            </Link>
 
-          {/* Desktop Search */}
-          <div className="hidden md:flex flex-1 max-w-md mx-4">
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search guides, species..."
-                className="pl-10"
-              />
+            {/* Desktop Search */}
+            <div className="hidden md:flex flex-1 max-w-md mx-4">
+              <div className="relative w-full">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search guides, species..."
+                  className="pl-10"
+                />
+              </div>
+            </div>
+
+            {/* Desktop Actions */}
+            <div className="hidden md:flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleTheme}
+                className="rounded-full"
+              >
+                {theme === "light" ? (
+                  <Moon className="h-5 w-5" />
+                ) : (
+                  <Sun className="h-5 w-5" />
+                )}
+              </Button>
+              {isLoggedIn ? (
+                <div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="rounded-full"
+                      >
+                        <User className="h-5 w-5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuItem asChild>
+                        <Link to="/profile" className="w-full cursor-pointer">
+                          My Profile
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="w-full cursor-pointer"
+                        onClick={() => setIsChangePasswordOpen(true)}
+                      >
+                        Change Password
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to="/admin" className="w-full cursor-pointer">
+                          Admin Dashboard
+                        </Link>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      dispatch(logout()),
+                        toast.success("Logged out successfully");
+                    }}
+                  >
+                    Logout
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <Link to="/login">
+                    <Button variant="outline">Dive In</Button>
+                  </Link>
+                  <Link to="/register">
+                    <Button variant="ocean">Join Reef</Button>
+                  </Link>
+                </>
+              )}
+            </div>
+
+            {/* Mobile Menu */}
+            <div className="flex md:hidden items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleTheme}
+                className="rounded-full"
+              >
+                {theme === "light" ? (
+                  <Moon className="h-5 w-5" />
+                ) : (
+                  <Sun className="h-5 w-5" />
+                )}
+              </Button>
+              <Sheet open={isOpen} onOpenChange={setIsOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="rounded-full">
+                    <Menu className="h-5 w-5" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-[300px]">
+                  <div className="flex flex-col gap-6 mt-6">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        type="search"
+                        placeholder="Search..."
+                        className="pl-10"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-3">
+                      {isLoggedIn === "true" ? (
+                        <Button
+                          variant="outline"
+                          className="w-full"
+                          onClick={() => {
+                            dispatch(logout()),
+                              toast.success("Logged out successfully");
+                          }}
+                        >
+                          Logout
+                        </Button>
+                      ) : (
+                        <>
+                          <Link to="/login" onClick={() => setIsOpen(false)}>
+                            <Button variant="outline" className="w-full">
+                              Dive In
+                            </Button>
+                          </Link>
+                          <Link to="/register" onClick={() => setIsOpen(false)}>
+                            <Button variant="ocean" className="w-full">
+                              Join Reef
+                            </Button>
+                          </Link>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
             </div>
           </div>
-
-          {/* Desktop Actions */}
-          <div className="hidden md:flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleTheme}
-              className="rounded-full"
-            >
-              {theme === "light" ? (
-                <Moon className="h-5 w-5" />
-              ) : (
-                <Sun className="h-5 w-5" />
-              )}
-            </Button>
-            {isLoggedIn ? (
-              <Button
-                variant="outline"
-                onClick={() => {
-                  dispatch(logout()), toast.success("Logged out successfully");
-                }}
-              >
-                Logout
-              </Button>
-            ) : (
-              <>
-                <Link to="/login">
-                  <Button variant="outline">Dive In</Button>
-                </Link>
-                <Link to="/register">
-                  <Button variant="ocean">Join Reef</Button>
-                </Link>
-              </>
-            )}
-          </div>
-
-          {/* Mobile Menu */}
-          <div className="flex md:hidden items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleTheme}
-              className="rounded-full"
-            >
-              {theme === "light" ? (
-                <Moon className="h-5 w-5" />
-              ) : (
-                <Sun className="h-5 w-5" />
-              )}
-            </Button>
-            <Sheet open={isOpen} onOpenChange={setIsOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full">
-                  <Menu className="h-5 w-5" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-[300px]">
-                <div className="flex flex-col gap-6 mt-6">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      type="search"
-                      placeholder="Search..."
-                      className="pl-10"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-3">
-                    {isLoggedIn === "true" ? (
-                      <Button
-                        variant="outline"
-                        className="w-full"
-                        onClick={() => {
-                          dispatch(logout()),
-                            toast.success("Logged out successfully");
-                        }}
-                      >
-                        Logout
-                      </Button>
-                    ) : (
-                      <>
-                        <Link to="/login" onClick={() => setIsOpen(false)}>
-                          <Button variant="outline" className="w-full">
-                            Dive In
-                          </Button>
-                        </Link>
-                        <Link to="/register" onClick={() => setIsOpen(false)}>
-                          <Button variant="ocean" className="w-full">
-                            Join Reef
-                          </Button>
-                        </Link>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </SheetContent>
-            </Sheet>
-          </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+      <ChangePasswordModal
+        open={isChangePasswordOpen}
+        onOpenChange={setIsChangePasswordOpen}
+      />
+    </>
   );
 };
 
