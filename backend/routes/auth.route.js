@@ -6,6 +6,7 @@ import {
   logout,
   refreshToken,
   signup,
+  updatePassword,
 } from "../controllers/auth.controller.js";
 import { protectRoute, adminRoute } from "../middleware/auth.middleware.js";
 
@@ -141,5 +142,47 @@ router.get("/profile", protectRoute, getProfile);
  *         description: Unauthorized
  */
 router.get("/profile2", protectRoute, adminRoute, getProfile2);
+
+/**
+ * @swagger
+ * /api/auth/update-password:
+ *   put:
+ *     summary: Update user password using current password
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - currentPassword
+ *               - newPassword
+ *             properties:
+ *               currentPassword:
+ *                 type: string
+ *                 example: oldPassword123
+ *               newPassword:
+ *                 type: string
+ *                 example: newSecurePass456
+ *     responses:
+ *       200:
+ *         description: Password updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Password updated successfully
+ *       401:
+ *         description: Unauthorized
+ *       400:
+ *         description: Invalid current password
+ */
+router.put("/update-password", protectRoute, updatePassword);
 
 export default router;

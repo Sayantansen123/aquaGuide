@@ -5,6 +5,8 @@ import {
   RegisterPayload,
   LoginResponse,
   RegisterResponse,
+  UpdatePasswordResponse,
+  UpdatePasswordPayload,
 } from "@/api/apiTypes";
 
 export const authApi = {
@@ -20,6 +22,11 @@ export const authApi = {
 
   logout: () =>
     httpClient.post<string>("/api/auth/logout", {
+      headers: { useAuth: true },
+    }),
+
+  updatePassword: (data: UpdatePasswordPayload) =>
+    httpClient.put<UpdatePasswordResponse>("/api/auth/update-password", data, {
       headers: { useAuth: true },
     }),
 };

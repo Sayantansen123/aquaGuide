@@ -51,3 +51,12 @@ export interface Filters {
   care_level: string;
   category: string;
 }
+
+export interface UpdatePasswordPayload {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface UpdatePasswordResponse {
+  message: string;
+}
