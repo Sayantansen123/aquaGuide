@@ -1,6 +1,7 @@
 export interface RegisterPayload {
   name: string;
   email: string;
+  userid: string;
   password: string;
   dob: string;
   gender: string;
@@ -15,6 +16,7 @@ export interface LoginPayload {
 export interface RegisterResponse {
   id: 1;
   name: string;
+  userid: string;
   email: string;
   role: string;
   dob: string;
@@ -63,6 +65,7 @@ export interface UpdatePasswordResponse {
 
 export interface UserDetailsResponse {
   id: string;
+  userid: string;
   name: string;
   email: string;
   dob: string; // ISO date string, e.g. "1990-01-01"
@@ -73,4 +76,8 @@ export interface UserDetailsResponse {
   createdAt: string; // ISO date string
   videos_posted: number;
   articles_posted: number;
+}
+
+export interface RoleResponse {
+  role: string;
 }

@@ -55,6 +55,7 @@ const Profile = () => {
 
   const [userDetails, setUserDetails] = useState<UserDetailsResponse>({
     id: "N/A",
+    userid: "",
     name: "N/A",
     email: "N/A",
     dob: "N/A", // ISO date string, e.g. "1990-01-01"
@@ -136,7 +137,7 @@ const Profile = () => {
                   <div className="flex items-center justify-center md:justify-start gap-2">
                     <User className="h-4 w-4 text-muted-foreground" />
                     <span className="font-semibold text-lg">
-                      {name || "Aquarist"}
+                      {name || "Aquarist"} ( {userDetails?.userid || "N/A"} )
                     </span>
                   </div>
                   <div className="flex items-center justify-center md:justify-start gap-2">

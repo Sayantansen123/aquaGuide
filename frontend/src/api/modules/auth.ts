@@ -8,6 +8,7 @@ import {
   UpdatePasswordResponse,
   UpdatePasswordPayload,
   UserDetailsResponse,
+  RoleResponse,
 } from "@/api/apiTypes";
 
 export const authApi = {
@@ -33,6 +34,11 @@ export const authApi = {
 
   getUser: () =>
     httpClient.get<UserDetailsResponse>("/api/auth/user-details", {
+      headers: { useAuth: true },
+    }),
+
+  getRole: (userid: string) =>
+    httpClient.get<RoleResponse>(`/api/auth/getrole?userid=${userid}`, {
       headers: { useAuth: true },
     }),
 };

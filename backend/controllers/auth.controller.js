@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { Op } from "sequelize";
 import bcrypt from "bcryptjs";
 import User from "../models/user.model.js"; // Sequelize model
 import VideoGuide from "../models/video.model.js";
@@ -44,6 +45,11 @@ export const signup = async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
+    const existingUserId = await User.findOne({ where: { userid } });
+    if (existingUserId) {
+      return res.status(400).json({ message: "This username already exists" });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create({
@@ -62,6 +68,7 @@ export const signup = async (req, res) => {
     res.status(201).json({
       user: {
         id: user.id,
+        userid: user.userid,
         name: user.name,
         email: user.email,
         role: user.role,
@@ -80,10 +87,22 @@ export const signup = async (req, res) => {
 
 export const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { identifier, email, userid, password } = req.body;
 
-    // Step 1: Find user by email
-    const user = await User.findOne({ where: { email } });
+    const loginId = identifier || email || userid;
+
+    if (!loginId || !password) {
+      return res
+        .status(400)
+        .json({ message: "Identifier and password required" });
+    }
+
+    // Find user either by email OR userid
+    const user = await User.findOne({
+      where: {
+        [Op.or]: [{ email: loginId }, { userid: loginId }],
+      },
+    });
 
     if (!user) {
       console.log("❌ No user found with email:", email);
@@ -142,6 +161,7 @@ export const login = async (req, res) => {
       message: "Login successful",
       user: {
         id: user.id,
+        userid: user.userid,
         name: user.name,
         email: user.email,
         role: user.role,
@@ -210,7 +230,7 @@ export const getProfile = async (req, res) => {
   try {
     const userId = req.user.id;
     const user = await User.findByPk(userId, {
-      attributes: ["id", "name", "email", "role", "dob", "gender"],
+      attributes: ["id", "userid", "name", "email", "role", "dob", "gender"],
     });
 
     if (!user) return res.status(404).json({ message: "User not found" });
@@ -227,7 +247,7 @@ export const getProfile2 = async (req, res) => {
   try {
     const userId = req.user.id;
     const user = await User.findByPk(userId, {
-      attributes: ["id", "name", "email", "role", "dob", "gender"],
+      attributes: ["id", "userid", "name", "email", "role", "dob", "gender"],
     });
 
     if (!user) return res.status(404).json({ message: "User not found" });
@@ -300,6 +320,7 @@ export const getUserDetails = async (req, res) => {
     const user = await User.findByPk(userId, {
       attributes: [
         "id",
+        "userid",
         "name",
         "email",
         "dob",
@@ -333,5 +354,121 @@ export const getUserDetails = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(error.status || 500).json({ message: error.message });
+  }
+};
+
+export const getUserRole = async (req, res) => {
+  try {
+    const { userid } = req.query;
+
+    if (!userid) {
+      return res.status(400).json({ message: "userid query param is required" });
+    }
+
+    const user = await User.findOne({
+      where: { userid },
+      attributes: ["role"],
+    });
+
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.json(user);
+  } catch (error) {
+    console.error("Error in getUserRole:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
+
+export const suggestUserIds = async (req, res) => {
+  try {
+    const { name, dob } = req.body; // or req.query, your choice
+
+    if (!name || !dob) {
+      return res.status(400).json({ message: "name and dob are required" });
+    }
+
+    // Parse & normalize
+    const rawName = name.trim().toLowerCase();
+    const nameParts = rawName.split(/\s+/).filter(Boolean);
+    const first = nameParts[0] || "user";
+    const last = nameParts.length > 1 ? nameParts[nameParts.length - 1] : "";
+
+    const dateObj = new Date(dob);
+    if (isNaN(dateObj.getTime())) {
+      return res
+        .status(400)
+        .json({ message: "Invalid dob format, use YYYY-MM-DD" });
+    }
+
+    const dd = String(dateObj.getDate()).padStart(2, "0");
+    const mm = String(dateObj.getMonth() + 1).padStart(2, "0");
+    const yyyy = dateObj.getFullYear();
+    const yy = String(yyyy).slice(-2);
+
+    // Base patterns – you can tweak/extend these
+    let baseCandidates = [
+      `${first}${dd}${mm}`, // kaustav1508
+      `${first}${dd}${yy}`, // kaustav1502
+      `${first}${mm}${yy}`, // kaustav0802
+      `${first}${yyyy}`, // kaustav2002
+      `${first}${last}${dd}`, // kaustavmahata15
+      `${first}${dd}`, // kaustav15
+    ];
+
+    // Clean and limit length
+    baseCandidates = baseCandidates
+      .map(
+        (str) =>
+          str
+            .replace(/[^a-z0-9]/g, "") // only a-z0-9
+            .slice(0, 18) // length limit
+      )
+      .filter(Boolean);
+
+    // Query DB: which of these are already taken?
+    const existing = await User.findAll({
+      where: {
+        userid: {
+          [Op.in]: baseCandidates,
+        },
+      },
+      attributes: ["userid"],
+    });
+
+    const taken = new Set(existing.map((u) => u.userid));
+    const suggestions = [];
+
+    // Add unique base candidates
+    for (const cand of baseCandidates) {
+      if (!taken.has(cand) && !suggestions.includes(cand)) {
+        suggestions.push(cand);
+      }
+      if (suggestions.length >= 5) break;
+    }
+
+    // If we still have < 5, generate suffixed variants
+    if (suggestions.length < 5) {
+      for (const base of baseCandidates) {
+        for (let i = 1; i <= 50 && suggestions.length < 5; i++) {
+          const cand = `${base}${i}`;
+          if (!taken.has(cand) && !suggestions.includes(cand)) {
+            suggestions.push(cand);
+          }
+        }
+        if (suggestions.length >= 5) break;
+      }
+    }
+
+    return res.status(200).json({
+      name,
+      dob,
+      suggestions,
+    });
+  } catch (err) {
+    console.error("Error in suggestUserIds:", err);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
