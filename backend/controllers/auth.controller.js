@@ -45,6 +45,11 @@ export const signup = async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
+    const existingUserId = await User.findOne({ where: { userid } });
+    if (existingUserId) {
+      return res.status(400).json({ message: "This username already exists" });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create({
@@ -87,16 +92,15 @@ export const login = async (req, res) => {
     const loginId = identifier || email || userid;
 
     if (!loginId || !password) {
-      return res.status(400).json({ message: "Identifier and password required" });
+      return res
+        .status(400)
+        .json({ message: "Identifier and password required" });
     }
 
     // Find user either by email OR userid
     const user = await User.findOne({
       where: {
-        [Op.or]: [
-          { email: loginId },
-          { userid: loginId },
-        ],
+        [Op.or]: [{ email: loginId }, { userid: loginId }],
       },
     });
 
@@ -243,7 +247,7 @@ export const getProfile2 = async (req, res) => {
   try {
     const userId = req.user.id;
     const user = await User.findByPk(userId, {
-      attributes: ["id", "userid" , "name", "email", "role", "dob", "gender"],
+      attributes: ["id", "userid", "name", "email", "role", "dob", "gender"],
     });
 
     if (!user) return res.status(404).json({ message: "User not found" });
@@ -353,7 +357,6 @@ export const getUserDetails = async (req, res) => {
   }
 };
 
-
 export const suggestUserIds = async (req, res) => {
   try {
     const { name, dob } = req.body; // or req.query, your choice
@@ -370,7 +373,9 @@ export const suggestUserIds = async (req, res) => {
 
     const dateObj = new Date(dob);
     if (isNaN(dateObj.getTime())) {
-      return res.status(400).json({ message: "Invalid dob format, use YYYY-MM-DD" });
+      return res
+        .status(400)
+        .json({ message: "Invalid dob format, use YYYY-MM-DD" });
     }
 
     const dd = String(dateObj.getDate()).padStart(2, "0");
@@ -380,20 +385,21 @@ export const suggestUserIds = async (req, res) => {
 
     // Base patterns – you can tweak/extend these
     let baseCandidates = [
-      `${first}${dd}${mm}`,      // kaustav1508
-      `${first}${dd}${yy}`,      // kaustav1502
-      `${first}${mm}${yy}`,      // kaustav0802
-      `${first}${yyyy}`,         // kaustav2002
-      `${first}${last}${dd}`,    // kaustavmahata15
-      `${first}${dd}`,           // kaustav15
+      `${first}${dd}${mm}`, // kaustav1508
+      `${first}${dd}${yy}`, // kaustav1502
+      `${first}${mm}${yy}`, // kaustav0802
+      `${first}${yyyy}`, // kaustav2002
+      `${first}${last}${dd}`, // kaustavmahata15
+      `${first}${dd}`, // kaustav15
     ];
 
     // Clean and limit length
     baseCandidates = baseCandidates
-      .map((str) =>
-        str
-          .replace(/[^a-z0-9]/g, "") // only a-z0-9
-          .slice(0, 18)              // length limit
+      .map(
+        (str) =>
+          str
+            .replace(/[^a-z0-9]/g, "") // only a-z0-9
+            .slice(0, 18) // length limit
       )
       .filter(Boolean);
 
