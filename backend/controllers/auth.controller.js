@@ -353,6 +353,30 @@ export const getUserDetails = async (req, res) => {
   }
 };
 
+export const getUserRole = async (req, res) => {
+  try {
+    const { userid } = req.query;
+
+    if (!userid) {
+      return res.status(400).json({ message: "userid query param is required" });
+    }
+
+    const user = await User.findOne({
+      where: { userid },
+      attributes: ["role"],
+    });
+
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.json(user);
+  } catch (error) {
+    console.error("Error in getUserRole:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
 
 export const suggestUserIds = async (req, res) => {
   try {
