@@ -11,6 +11,18 @@ const sendResponseAndRedirect = (res, success, message, redirectPath = '/admin/m
         redirect: redirectPath 
     });
 };
+// Simple helper to enforce admin seniority rule
+const assertCanActOnTargetAdmin = (currentUser, targetUser) => {
+  // only applies when BOTH are admins
+  if (currentUser.role === "admin" && targetUser.role === "admin") {
+    // older admin = smaller createdAt
+    if (targetUser.createdAt < currentUser.createdAt) {
+      const err = new Error("You cannot modify an admin who is older than you");
+      err.status = 403;
+      throw err;
+    }
+  }
+};
 
 // GET /manage-users
 export const manageUsers = async (req, res, next) => {
@@ -47,158 +59,213 @@ export const manageUsers = async (req, res, next) => {
 
 // POST /user/:id/activate
 export const activateUser = async (req, res, next) => {
-    try {
-        const { userId } = req.params;
-        const currentUserId = req.user.id; // From the authenticateUser middleware
+  try {
+    const { userId } = req.params;              // was userId
+    const currentUser = req.user;           // logged-in admin
 
-        const user = await User.findByPk(userId);
-        if (!user) {
-            return res.status(404).json({ message: "User not found." });
-        }
-
-        // Prevent admin from modifying their own account status
-        if (user.id === currentUserId) {
-            return sendResponseAndRedirect(res, false, "You cannot activate your own account.");
-        }
-
-        user.status = 'active';
-        // Assuming 'failed_login_attempts' is a column to reset on activation
-        user.failed_login_attempts = 0; 
-        await user.save(); // Sequelize saves the changes
-
-        sendResponseAndRedirect(res, true, `User '${user.username || user.email}' has been activated.`);
-    } catch (error) {
-        next(error);
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
     }
+
+    // Prevent admin from modifying their own account status
+    if (user.id === currentUser.id) {
+      return sendResponseAndRedirect(res, false, "You cannot activate your own account.");
+    }
+
+    // 🔴 AGE-BASED ADMIN CHECK
+    assertCanActOnTargetAdmin(currentUser, user);
+
+    user.status = "active";
+    user.failed_login_attempts = 0;
+    await user.save();
+
+    sendResponseAndRedirect(
+      res,
+      true,
+      `User '${user.username || user.email}' has been activated.`
+    );
+  } catch (error) {
+    next(error);
+  }
 };
 
 // POST /user/:id/deactivate
 export const deactivateUser = async (req, res, next) => {
-    try {
-        const { userId } = req.params;
-        const currentUserId = req.user.id;
+  try {
+    const { userId } = req.params;
+    const currentUser = req.user;
 
-        const user = await User.findByPk(userId);
-        if (!user) {
-            return res.status(404).json({ message: "User not found." });
-        }
-
-        if (user.id === currentUserId) {
-            return sendResponseAndRedirect(res, false, "You cannot deactivate your own account.");
-        }
-
-        user.status = 'inactive';
-        await user.save();
-
-        sendResponseAndRedirect(res, true, `User '${user.username || user.email}' has been deactivated.`);
-    } catch (error) {
-        next(error);
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
     }
+
+    if (user.id === currentUser.id) {
+      return sendResponseAndRedirect(res, false, "You cannot deactivate your own account.");
+    }
+
+    // 🔴 AGE-BASED ADMIN CHECK
+    assertCanActOnTargetAdmin(currentUser, user);
+
+    user.status = "inactive";
+    await user.save();
+
+    sendResponseAndRedirect(
+      res,
+      true,
+      `User '${user.username || user.email}' has been deactivated.`
+    );
+  } catch (error) {
+    next(error);
+  }
 };
 
 // POST /user/:id/unlock
 export const unlockUser = async (req, res, next) => {
-    try {
-        const { userId } = req.params;
+  try {
+    const { userId } = req.params;
+    const currentUser = req.user;
 
-        const user = await User.findByPk(userId);
-        if (!user) {
-            return res.status(404).json({ message: "User not found." });
-        }
-
-        if (user.status === 'locked') {
-            user.status = 'active';
-            user.failed_login_attempts = 0;
-            await user.save();
-            sendResponseAndRedirect(res, true, `User '${user.username || user.email}' has been unlocked.`);
-        } else {
-            sendResponseAndRedirect(res, false, `User '${user.username || user.email}' was not locked.`);
-        }
-    } catch (error) {
-        next(error);
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
     }
+
+    // 🔴 AGE-BASED ADMIN CHECK (only matters if both are admins)
+    assertCanActOnTargetAdmin(currentUser, user);
+
+    if (user.status === "locked") {
+      user.status = "active";
+      user.failed_login_attempts = 0;
+      await user.save();
+      sendResponseAndRedirect(
+        res,
+        true,
+        `User '${user.username || user.email}' has been unlocked.`
+      );
+    } else {
+      sendResponseAndRedirect(
+        res,
+        false,
+        `User '${user.username || user.email}' was not locked.`
+      );
+    }
+  } catch (error) {
+    next(error);
+  }
 };
 
 // POST /user/:id/toggle_admin
 export const toggleAdmin = async (req, res, next) => {
-    try {
-        const { userId } = req.params;
-        const currentUserId = req.user.id;
+  try {
+    const { userId } = req.params;
+    const currentUser = req.user;
 
-        const user = await User.findByPk(userId);
-        if (!user) {
-            return res.status(404).json({ message: "User not found." });
-        }
-
-        // Prevent self-modification
-        if (user.id === currentUserId) {
-            return sendResponseAndRedirect(res, false, "You can't change your own admin rights.");
-        }
-
-        // Optional safety: prevent removing the last admin
-        if (user.role === 'admin') {
-            const remainingAdminsCount = await User.count({ where: { role: 'admin' } });
-            if (remainingAdminsCount <= 1) {
-                return sendResponseAndRedirect(res, false, "You can't remove the last remaining admin.");
-            }
-        }
-
-        // Toggle logic (assuming 'role' is an ENUM 'user'/'admin'/'support')
-        user.role = user.role === 'admin' ? 'user' : 'admin';
-        await user.save();
-
-        sendResponseAndRedirect(res, true, `Admin status for ${user.username || user.email} set to ${user.role === 'admin'}.`);
-    } catch (error) {
-        next(error);
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
     }
-};
 
+    // Prevent self-modification
+    if (user.id === currentUser.id) {
+      return sendResponseAndRedirect(res, false, "You can't change your own admin rights.");
+    }
+
+    // 🔴 AGE-BASED ADMIN CHECK
+    assertCanActOnTargetAdmin(currentUser, user);
+
+    // Optional safety: prevent removing the last admin
+    if (user.role === "admin") {
+      const remainingAdminsCount = await User.count({ where: { role: "admin" } });
+      if (remainingAdminsCount <= 1) {
+        return sendResponseAndRedirect(
+          res,
+          false,
+          "You can't remove the last remaining admin."
+        );
+      }
+    }
+
+    // Toggle logic
+    user.role = user.role === "admin" ? "user" : "admin";
+    await user.save();
+
+    sendResponseAndRedirect(
+      res,
+      true,
+      `Admin status for ${user.username || user.email} set to ${
+        user.role === "admin"
+      }.`
+    );
+  } catch (error) {
+    next(error);
+  }
+};
 
 // POST /user/:id/toggle_support
 export const toggleSupport = async (req, res, next) => {
-    try {
-        const { userId } = req.params;
-        const currentUserId = req.user.id;
+  try {
+    const { userId } = req.params;
+    const currentUser = req.user;
 
-        const user = await User.findByPk(userId);
-        if (!user) {
-            return res.status(404).json({ message: "User not found." });
-        }
-
-        if (user.id === currentUserId) {
-            return sendResponseAndRedirect(res, false, "You can't change your own support rights.");
-        }
-
-        // Assuming support is toggled between 'support' and 'user' role
-        user.role = user.role === 'support' ? 'user' : 'support';
-        await user.save();
-        
-        sendResponseAndRedirect(res, true, `Support Agent status for ${user.username || user.email} set to ${user.role === 'support'}.`);
-    } catch (error) {
-        next(error);
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
     }
+
+    if (user.id === currentUser.id) {
+      return sendResponseAndRedirect(
+        res,
+        false,
+        "You can't change your own support rights."
+      );
+    }
+
+    // 🔴 AGE-BASED ADMIN CHECK
+    assertCanActOnTargetAdmin(currentUser, user);
+
+    // Assuming support is toggled between 'support' and 'user'
+    user.role = user.role === "support" ? "user" : "support";
+    await user.save();
+
+    sendResponseAndRedirect(
+      res,
+      true,
+      `Support Agent status for ${user.username || user.email} set to ${
+        user.role === "support"
+      }.`
+    );
+  } catch (error) {
+    next(error);
+  }
 };
 
 // POST /user/:id/delete
-export const deleteUser = async (req, res, next) => {
-    try {
-        const { userId } = req.params;
-        const currentUserId = req.user.id;
+export const deleteUser = async (req, res) => {
+  try {
+    const currentUser = req.user;
+    const { userId } = req.params;
 
-        const user = await User.findByPk(userId);
-        if (!user) {
-            return res.status(404).json({ message: "User not found." });
-        }
-
-        if (user.id === currentUserId) {
-            return sendResponseAndRedirect(res, false, "You can't delete your own account.");
-        }
-
-        // Sequelize method to delete a record
-        await user.destroy(); 
-
-        sendResponseAndRedirect(res, true, `User '${user.username || user.email}' has been deleted.`);
-    } catch (error) {
-        next(error);
+    const targetUser = await User.findByPk(userId);
+    if (!targetUser) {
+      return res.status(404).json({ message: "User not found" });
     }
+
+    // Don't let an admin delete themselves
+    if (targetUser.id === currentUser.id) {
+      return res
+        .status(400)
+        .json({ message: "You cannot delete your own account" });
+    }
+
+    // 🔴 AGE-BASED ADMIN CHECK
+    assertCanActOnTargetAdmin(currentUser, targetUser);
+
+    await targetUser.destroy();
+    res.json({ message: "User deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(err.status || 500).json({ message: err.message || "Server error" });
+  }
 };
