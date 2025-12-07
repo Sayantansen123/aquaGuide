@@ -91,5 +91,27 @@ export interface VideoPayload {
 
 export interface VideoResponse {
   message: string;
-  video: VideoPayload;
+  video: VideoArray;
+}
+
+export interface VideoArray {
+  id: string;
+  title: string;
+  youtubeLink: string;
+  channelAvatarUrl: string;
+  description: string;
+  videoId: string;
+  duration: number | null;
+  viewCount: number;
+  category: string;
+  isActive: boolean;
+  status: "approved" | "pending" | "rejected"; // union for safety
+  submittedBy: string;
+  createdAt: string; // ISO date string
+  updatedAt: string; // ISO date string
+}
+
+export interface getVideoResponse {
+  message: string;
+  video: VideoArray[];
 }

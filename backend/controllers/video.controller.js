@@ -94,15 +94,62 @@ export const approveVideo = async (req, res) => {
 };
 
 export const rejectVideo = async (req, res) => {
-  const { id } = req.params;
-  await VideoGuide.update({ status: "rejected" }, { where: { id } });
-  res.json({ message: "Video rejected." });
+  try {
+    const { ids } = req.body; // expect array of ids
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: "ids must be a non-empty array" });
+    }
+
+    const updatedCount = await VideoGuide.update(
+      { status: "rejected" },
+      {
+        where: {
+          id: {
+            [Op.in]: ids,
+          },
+        },
+      }
+    );
+
+    res.json({
+      message: "Videos rejected successfully.",
+      updatedCount,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to reject videos",
+      error: error.message,
+    });
+  }
 };
 
 export const deleteVideoGuide = async (req, res) => {
-  const { id } = req.params;
-  await VideoGuide.destroy({ where: { id } });
-  res.json({ message: "Video deleted." });
+  try {
+    const { ids } = req.body; // array of ids
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: "ids must be a non-empty array" });
+    }
+
+    const deletedCount = await VideoGuide.destroy({
+      where: {
+        id: {
+          [Op.in]: ids,
+        },
+      },
+    });
+
+    res.json({
+      message: "Videos deleted successfully.",
+      deletedCount,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to delete videos",
+      error: error.message,
+    });
+  }
 };
 
 export const deleteSelectedVideos = async (req, res) => {

@@ -1,5 +1,5 @@
 import httpClient from "@/api/axiosSetup";
-import { VideoPayload, VideoResponse } from "../apiTypes";
+import { getVideoResponse, VideoPayload, VideoResponse } from "../apiTypes";
 
 export const videoApi = {
   create: (data: VideoPayload) =>
@@ -8,7 +8,7 @@ export const videoApi = {
     }),
 
   getAllVideo: () =>
-    httpClient.get<VideoResponse>("/api/videos", {
+    httpClient.get<getVideoResponse>("/api/videos", {
       headers: { useAuth: true },
     }),
 };

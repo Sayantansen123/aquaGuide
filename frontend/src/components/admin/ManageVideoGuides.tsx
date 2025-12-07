@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,7 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Eye, Pencil, Check, X, Trash2, Play, Youtube } from "lucide-react";
-import { VideoPayload } from "@/api/apiTypes";
+import { VideoArray, VideoPayload } from "@/api/apiTypes";
 import { toast } from "sonner";
 import { videoApi } from "@/api/modules/video";
 
@@ -77,17 +77,13 @@ const categories = [
 
 const ManageVideoGuides = () => {
   const [videos, setVideos] = useState<VideoGuide[]>(mockVideos);
+  const [videoArray, setVideoArray] = useState<VideoArray[]>([]);
   const [selectedVideos, setSelectedVideos] = useState<string[]>([]);
   const [youtubeLink, setYoutubeLink] = useState("");
   const [videoTitle, setVideoTitle] = useState("");
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
-  const [postVideo, setPostVideo] = useState<VideoPayload>({
-    youtubeLink: "",
-    category: "",
-    title: "",
-    description: "",
-  });
+  const [callApi, setCallApi] = useState<boolean>(false);
 
   const extractVideoId = (url: string) => {
     const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/);
@@ -96,9 +92,22 @@ const ManageVideoGuides = () => {
 
   const videoId = extractVideoId(youtubeLink);
 
+  useEffect(() => {
+    const getVideos = async () => {
+      try {
+        const res = await videoApi.getAllVideo();
+        const videoData: VideoArray[] = res?.data?.video || [];
+        setVideoArray(videoData);
+      } catch (error) {}
+    };
+
+    getVideos();
+  }, [callApi]);
+
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedVideos(videos.map((v) => v.id));
+      setSelectedVideos(videoArray.map((v) => v.id));
+      console.log(selectedVideos);
     } else {
       setSelectedVideos([]);
     }
@@ -114,10 +123,10 @@ const ManageVideoGuides = () => {
 
   const handleBulkAction = (action: "approve" | "reject" | "delete") => {
     if (action === "delete") {
-      setVideos(videos.filter((v) => !selectedVideos.includes(v.id)));
+      setVideoArray(videoArray.filter((v) => !selectedVideos.includes(v.id)));
     } else {
-      setVideos(
-        videos.map((v) =>
+      setVideoArray(
+        videoArray.map((v) =>
           selectedVideos.includes(v.id)
             ? { ...v, status: action === "approve" ? "approved" : "rejected" }
             : v
@@ -136,6 +145,7 @@ const ManageVideoGuides = () => {
 
   const handlePostVideo = async (e: any) => {
     e.preventDefault();
+    setCallApi(true);
     try {
       if (!youtubeLink.trim() || !videoTitle.trim()) {
         toast.error("Please provide the required fields .");
@@ -169,6 +179,7 @@ const ManageVideoGuides = () => {
         "Error adding video guid ";
       toast.error(message);
     } finally {
+      setCallApi(false);
     }
   };
 
@@ -307,80 +318,83 @@ const ManageVideoGuides = () => {
           <CardTitle className="text-lg">Video Guides</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-border">
-                  <TableHead className="w-12">
-                    <Checkbox
-                      checked={
-                        selectedVideos.length === videos.length &&
-                        videos.length > 0
-                      }
-                      onCheckedChange={handleSelectAll}
-                    />
-                  </TableHead>
-                  <TableHead className="w-12 hidden sm:table-cell">
-                    Channel
-                  </TableHead>
-                  <TableHead className="w-24 hidden md:table-cell">
-                    Thumbnail
-                  </TableHead>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="hidden lg:table-cell">
-                    Added On
-                  </TableHead>
-                  <TableHead className="hidden sm:table-cell">
-                    Category
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {videos.map((video) => (
-                  <TableRow key={video.id} className="border-border">
-                    <TableCell>
+          {videoArray.length === 0 ? (
+            <div className="text-center p-10 pb-20">No Videos to show</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-border">
+                    <TableHead className="w-12">
                       <Checkbox
-                        checked={selectedVideos.includes(video.id)}
-                        onCheckedChange={(checked) =>
-                          handleSelectVideo(video.id, checked as boolean)
+                        checked={
+                          selectedVideos.length === videos.length &&
+                          videos.length > 0
                         }
+                        onCheckedChange={handleSelectAll}
                       />
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell">
-                      <img
-                        src={video.channelIcon}
-                        alt="Channel"
-                        className="h-8 w-8 rounded-full"
-                      />
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      <div className="relative w-20 h-12 rounded overflow-hidden bg-muted">
-                        <img
-                          src={video.thumbnail}
-                          alt={video.title}
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                          <Play className="h-4 w-4 text-white" />
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-medium max-w-[120px] md:max-w-[200px] truncate">
-                      {video.title}
-                    </TableCell>
-                    <TableCell>{getStatusBadge(video.status)}</TableCell>
-                    <TableCell className="hidden lg:table-cell">
-                      {video.addedOn}
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell">
-                      <Badge variant="secondary">{video.category}</Badge>
-                    </TableCell>
+                    </TableHead>
+                    <TableHead className="w-12 hidden sm:table-cell">
+                      Channel
+                    </TableHead>
+                    <TableHead className="w-24 hidden md:table-cell">
+                      Thumbnail
+                    </TableHead>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="hidden lg:table-cell">
+                      Added On
+                    </TableHead>
+                    <TableHead className="hidden sm:table-cell">
+                      Category
+                    </TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {videoArray.map((video) => (
+                    <TableRow key={video.id} className="border-border">
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedVideos.includes(video.id)}
+                          onCheckedChange={(checked) =>
+                            handleSelectVideo(video.id, checked as boolean)
+                          }
+                        />
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell">
+                        <img alt="Channel" className="h-8 w-8 rounded-full" />
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        <div className="relative w-20 h-12 rounded overflow-hidden bg-muted">
+                          <img
+                            alt={video?.title || "Not available"}
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                            <Play className="h-4 w-4 text-white" />
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-medium max-w-[120px] md:max-w-[200px] truncate">
+                        {video?.title || "Not available"}
+                      </TableCell>
+                      <TableCell>
+                        {getStatusBadge(video?.status || "pending")}
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell">
+                        {video?.createdAt.split("T")[0] || "Not available"}
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell">
+                        <Badge variant="secondary">
+                          {video?.category || "Aquaguide"}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

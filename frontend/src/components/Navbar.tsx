@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Search, Moon, Sun, Menu, X, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,7 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
   const role = useSelector((state: RootState) => state.user.role);
+  const navigate = useNavigate();
 
   const userid = localStorage.getItem("userid");
 
@@ -137,6 +138,7 @@ const Navbar = () => {
                     variant="outline"
                     onClick={() => {
                       dispatch(logout()),
+                        navigate("/"),
                         toast.success("Logged out successfully");
                     }}
                   >
@@ -208,6 +210,7 @@ const Navbar = () => {
                             className="w-full"
                             onClick={() => {
                               dispatch(logout()),
+                                navigate("/"),
                                 toast.success("Logged out successfully");
                             }}
                           >

@@ -124,7 +124,10 @@ const App = () => {
                 />
               </Route>
             ) : (
-              <></>
+              <Route
+                path="/admin"
+                element={<div className="bg-green-500/10 h-100vh"></div>}
+              />
             )}
 
             <Route
