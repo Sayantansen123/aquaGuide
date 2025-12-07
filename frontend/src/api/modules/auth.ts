@@ -41,4 +41,9 @@ export const authApi = {
     httpClient.get<RoleResponse>(`/api/auth/getrole?userid=${userid}`, {
       headers: { useAuth: true },
     }),
+
+  getUsersData: () =>
+    httpClient.get<UserDetailsResponse>("/api/manage_users/manage-users", {
+      headers: { useAuth: true },
+    }),
 };
