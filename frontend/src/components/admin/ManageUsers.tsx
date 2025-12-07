@@ -9,7 +9,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Shield, HeadsetIcon, UserX, Trash2, ShieldOff } from "lucide-react";
+import {
+  Shield,
+  HeadsetIcon,
+  UserX,
+  Trash2,
+  ShieldOff,
+  Crown,
+} from "lucide-react";
+
 import { cn } from "@/lib/utils";
 import { authApi } from "@/api/modules/auth";
 import { User } from "@/api/apiTypes";
@@ -127,14 +135,25 @@ const ManageUsers = () => {
           <span className="hidden sm:inline">Deactivate</span>
         </Button>
         {user.role !== "support" && user.role !== "admin" && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-xs h-7 px-2 border-primary/50 text-primary hover:bg-primary/10"
-          >
-            <HeadsetIcon className="h-3 w-3 mr-1" />
-            <span className="hidden sm:inline">Make Support</span>
-          </Button>
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-xs h-7 px-2 border-primary/50 text-primary hover:bg-primary/10"
+            >
+              <HeadsetIcon className="h-3 w-3 mr-1" />
+              <span className="hidden sm:inline">Make Support</span>
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-xs h-7 px-2 border-primary/50 text-primary hover:bg-primary/10"
+            >
+              <Crown className="h-3 w-3 mr-1" />
+              <span className="hidden sm:inline">Make Admin</span>
+            </Button>
+          </>
         )}
         {user.role === "admin" && (
           <Button
@@ -144,6 +163,17 @@ const ManageUsers = () => {
           >
             <ShieldOff className="h-3 w-3 mr-1" />
             <span className="hidden sm:inline">Remove Admin</span>
+          </Button>
+        )}
+
+        {user.role === "support" && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-xs h-7 px-2 border-destructive/50 text-destructive hover:bg-destructive/10"
+          >
+            <ShieldOff className="h-3 w-3 mr-1" />
+            <span className="hidden sm:inline">Remove Support</span>
           </Button>
         )}
         <Button variant="destructive" size="sm" className="text-xs h-7 px-2">

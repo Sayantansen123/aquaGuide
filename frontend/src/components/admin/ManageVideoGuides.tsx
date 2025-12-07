@@ -375,18 +375,31 @@ const ManageVideoGuides = () => {
                         />
                       </TableCell>
                       <TableCell className="hidden sm:table-cell">
-                        <img alt="Channel" className="h-8 w-8 rounded-full" />
+                        <img
+                          alt="Channel"
+                          className="h-8 w-8 rounded-full"
+                          src={video?.channelAvatarUrl || ""}
+                        />
                       </TableCell>
                       <TableCell className="hidden md:table-cell">
-                        <div className="relative w-20 h-12 rounded overflow-hidden bg-muted">
-                          <img
-                            alt={video?.title || "Not available"}
-                            className="w-full h-full object-cover"
-                          />
-                          <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                            <Play className="h-4 w-4 text-white" />
+                        <a
+                          href={`https://www.youtube.com/watch?v=${video.videoId}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="group"
+                        >
+                          <div className="relative w-20 h-12 rounded overflow-hidden bg-muted">
+                            <img
+                              alt={video?.title || "Not available"}
+                              src={`https://img.youtube.com/vi/${video.videoId}/0.jpg`}
+                              className="w-full h-full object-cover"
+                            />
+
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                              <Play className="h-4 w-4 text-white" />
+                            </div>
                           </div>
-                        </div>
+                        </a>
                       </TableCell>
                       <TableCell className="font-medium max-w-[120px] md:max-w-[200px] truncate">
                         {video?.title || "Not available"}
