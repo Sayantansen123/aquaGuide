@@ -16,19 +16,42 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import FAQ from "./pages/FAQ";
 import NotFound from "./pages/NotFound";
-import { Provider } from "react-redux";
-import store from "./store/store";
+import { Provider, useDispatch, useSelector } from "react-redux";
+import store, { RootState } from "./store/store";
 import PublicRoute from "./routes/publicRoute";
 import Profile from "./pages/Profile";
 import PrivateRoute from "./routes/privateRoute";
 import AdminLayout from "./components/AdminLayout";
 import AdminDashboard from "./pages/AdminDashboard";
+import { authApi } from "./api/modules/auth";
+import { useEffect } from "react";
+import { setRole } from "./store/userSlice";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <Provider store={store}>
+const App = () => {
+  const userid = localStorage.getItem("userid");
+  const dispatch = useDispatch();
+  const role = useSelector((state: RootState) => state.user.role);
+
+  useEffect(() => {
+    const getRoles = async () => {
+      try {
+        const res = await authApi.getRole(userid);
+        console.log(res?.data?.role || "user");
+        dispatch(setRole(res?.data?.role || "user"));
+      } catch (error) {
+        return "user";
+      }
+    };
+
+    if (userid) {
+      getRoles();
+    }
+  }, []);
+
+  return (
+    <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -89,17 +112,23 @@ const App = () => (
                 }
               />
             </Route>
-
-            <Route element={<PrivateRoute />}>
+            {role === "admin" || role === "support" ? (
+              <Route element={<PrivateRoute />}>
+                <Route
+                  path="/admin"
+                  element={
+                    <AdminLayout>
+                      <AdminDashboard />
+                    </AdminLayout>
+                  }
+                />
+              </Route>
+            ) : (
               <Route
                 path="/admin"
-                element={
-                  <AdminLayout>
-                    <AdminDashboard />
-                  </AdminLayout>
-                }
+                element={<div className="bg-green-500/10 h-100vh"></div>}
               />
-            </Route>
+            )}
 
             <Route
               path="/community-chat"
@@ -138,8 +167,8 @@ const App = () => (
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
-    </Provider>
-  </QueryClientProvider>
-);
+    </QueryClientProvider>
+  );
+};
 
 export default App;

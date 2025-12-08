@@ -16,6 +16,8 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import ManageTextGuides from "@/components/admin/ManageTextGuides";
 import ManageVideoGuides from "@/components/admin/ManageVideoGuides";
+import ManageUsers from "@/components/admin/ManageUsers";
+import ManageSpecies from "@/components/admin/ManageSpecies";
 
 type TabType =
   | "dashboard"
@@ -93,7 +95,7 @@ const AdminDashboard = () => {
       case "dashboard":
         return <DashboardContent />;
       case "manage-users":
-        return <ManageUsersContent />;
+        return <ManageUsers />;
       case "manage-forum":
         return <ManageForumContent />;
       case "manage-text-guides":
@@ -101,7 +103,7 @@ const AdminDashboard = () => {
       case "manage-video-guides":
         return <ManageVideoGuides />;
       case "manage-species":
-        return <ManageSpeciesContent />;
+        return <ManageSpecies />;
       case "manage-chat":
         return <ManageChatContent />;
       case "live-users":

@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Search, Moon, Sun, Menu, X, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,7 +6,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState, useEffect } from "react";
 import { RootState } from "@/store/store";
 import { useDispatch, useSelector } from "react-redux";
-import { logout, setIsLoggedIn } from "@/store/userSlice";
+import { logout, setIsLoggedIn, setRole } from "@/store/userSlice";
 import { toast } from "sonner";
 import {
   DropdownMenu,
@@ -15,11 +15,31 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import ChangePasswordModal from "./ChangePasswordModal";
+import { authApi } from "@/api/modules/auth";
 
 const Navbar = () => {
   const [theme, setTheme] = useState<"light" | "dark">("dark");
   const [isOpen, setIsOpen] = useState(false);
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
+  const role = useSelector((state: RootState) => state.user.role);
+  const navigate = useNavigate();
+
+  const userid = localStorage.getItem("userid");
+
+  useEffect(() => {
+    const getRoles = async () => {
+      try {
+        const res = await authApi.getRole(userid);
+        console.log(res?.data?.role || "user");
+        dispatch(setRole(res?.data?.role || "user"));
+      } catch (error) {
+        return "user";
+      }
+    };
+    if (userid) {
+      getRoles();
+    }
+  }, [userid]);
 
   const { isLoggedIn } = useSelector((state: RootState) => state.user);
 
@@ -103,17 +123,22 @@ const Navbar = () => {
                       >
                         Change Password
                       </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link to="/admin" className="w-full cursor-pointer">
-                          Admin Dashboard
-                        </Link>
-                      </DropdownMenuItem>
+                      {role === "admin" || role === "support" ? (
+                        <DropdownMenuItem asChild>
+                          <Link to="/admin" className="w-full cursor-pointer">
+                            Admin Dashboard
+                          </Link>
+                        </DropdownMenuItem>
+                      ) : (
+                        <></>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                   <Button
                     variant="outline"
                     onClick={() => {
                       dispatch(logout()),
+                        navigate("/"),
                         toast.success("Logged out successfully");
                     }}
                   >
@@ -170,16 +195,22 @@ const Navbar = () => {
                               Profile
                             </Button>
                           </Link>
-                          <Link to="/admin" onClick={() => setIsOpen(false)}>
-                            <Button variant="ocean" className="w-full">
-                              Admin Dashboard
-                            </Button>
-                          </Link>
+                          {role === "admin" || role === "support" ? (
+                            <Link to="/admin" onClick={() => setIsOpen(false)}>
+                              <Button variant="ocean" className="w-full">
+                                Admin Dashboard
+                              </Button>
+                            </Link>
+                          ) : (
+                            <></>
+                          )}
+
                           <Button
                             variant="outline"
                             className="w-full"
                             onClick={() => {
                               dispatch(logout()),
+                                navigate("/"),
                                 toast.success("Logged out successfully");
                             }}
                           >

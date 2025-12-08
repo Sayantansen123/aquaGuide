@@ -1,4 +1,5 @@
 // controllers/videoGuide.controller.js
+import { Op } from "sequelize";
 import VideoGuide from "../models/video.model.js";
 import { getVideoDetails } from "../utils/youtube.util.js";
 
@@ -6,23 +7,27 @@ export const createVideoGuide = async (req, res) => {
   try {
     const { title, youtubeLink, category, description } = req.body;
     const userId = req.user.id;
-    const videoId = youtubeLink ? youtubeLink.split("v=")[1]?.substring(0, 11) : null;
+    const videoId = youtubeLink
+      ? youtubeLink.split("v=")[1]?.substring(0, 11)
+      : null;
 
     if (!title || !youtubeLink || !videoId) {
-      return res.status(400).json({ message: "Title, YouTube link, and video ID are required." });
+      return res
+        .status(400)
+        .json({ message: "Title, YouTube link, and video ID are required." });
     }
 
     const existing = await VideoGuide.findOne({ where: { videoId } });
-    if (existing) return res.status(409).json({ message: "Video already exists." });
+    if (existing)
+      return res.status(409).json({ message: "Video already exists." });
 
     const videoDetails = await getVideoDetails(videoId);
     const channelAvatarUrl = videoDetails?.channelAvatarUrl || null;
 
     const finalTitle = title.trim() || videoDetails?.title;
     const finalDescription = description?.trim() || videoDetails?.description;
-    const newStatus = (req.user && req.user.role === 'admin') 
-        ? 'approved' 
-        : 'pending';
+    const newStatus =
+      req.user && req.user.role === "admin" ? "approved" : "pending";
     const newVideo = await VideoGuide.create({
       title: finalTitle,
       youtubeLink,
@@ -34,7 +39,9 @@ export const createVideoGuide = async (req, res) => {
       status: newStatus,
     });
 
-    res.status(201).json({ message: "Video guide created successfully.", video: newVideo });
+    res
+      .status(201)
+      .json({ message: "Video guide created successfully.", video: newVideo });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error creating video guide." });
@@ -44,34 +51,111 @@ export const createVideoGuide = async (req, res) => {
 export const getAllVideos = async (req, res) => {
   try {
     const where = req.user.isAdmin ? {} : { submittedBy: req.user.id };
-    const videos = await VideoGuide.findAll({ where, order: [["createdAt", "DESC"]] });
-    res.status(200).json(videos);
+    const videos = await VideoGuide.findAll({
+      where,
+      order: [["createdAt", "DESC"]],
+    });
+    res
+      .status(200)
+      .json({ message: "all video fetched successfully.", video: videos });
   } catch (err) {
     res.status(500).json({ message: "Error fetching videos." });
   }
 };
 
 export const approveVideo = async (req, res) => {
-  const { id } = req.params;
-  await VideoGuide.update({ status: "approved" }, { where: { id } });
-  res.json({ message: "Video approved." });
+  try {
+    const { ids } = req.body; // Expect array of ids
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: "ids must be a non-empty array" });
+    }
+
+    const updatedCount = await VideoGuide.update(
+      { status: "approved" },
+      {
+        where: {
+          id: {
+            [Op.in]: ids,
+          },
+        },
+      }
+    );
+
+    res.json({
+      message: "Videos approved.",
+      updatedCount,
+    });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Something went wrong", error: err.message });
+  }
 };
 
 export const rejectVideo = async (req, res) => {
-  const { id } = req.params;
-  await VideoGuide.update({ status: "rejected" }, { where: { id } });
-  res.json({ message: "Video rejected." });
+  try {
+    const { ids } = req.body; // expect array of ids
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: "ids must be a non-empty array" });
+    }
+
+    const updatedCount = await VideoGuide.update(
+      { status: "rejected" },
+      {
+        where: {
+          id: {
+            [Op.in]: ids,
+          },
+        },
+      }
+    );
+
+    res.json({
+      message: "Videos rejected successfully.",
+      updatedCount,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to reject videos",
+      error: error.message,
+    });
+  }
 };
 
 export const deleteVideoGuide = async (req, res) => {
-  const { id } = req.params;
-  await VideoGuide.destroy({ where: { id } });
-  res.json({ message: "Video deleted." });
+  try {
+    const { ids } = req.body; // array of ids
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: "ids must be a non-empty array" });
+    }
+
+    const deletedCount = await VideoGuide.destroy({
+      where: {
+        id: {
+          [Op.in]: ids,
+        },
+      },
+    });
+
+    res.json({
+      message: "Videos deleted successfully.",
+      deletedCount,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to delete videos",
+      error: error.message,
+    });
+  }
 };
 
 export const deleteSelectedVideos = async (req, res) => {
   const { ids } = req.body;
-  if (!ids || !ids.length) return res.status(400).json({ message: "No videos selected." });
+  if (!ids || !ids.length)
+    return res.status(400).json({ message: "No videos selected." });
   const count = await VideoGuide.destroy({ where: { id: ids } });
   res.json({ message: `${count} videos deleted.` });
 };

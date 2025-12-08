@@ -9,7 +9,8 @@ import {
   signup,
   updatePassword,
   suggestUserIds,
-  getUserRole
+  getUserRole,
+  getUserLocation,
 } from "../controllers/auth.controller.js";
 import { protectRoute, adminRoute } from "../middleware/auth.middleware.js";
 
@@ -249,4 +250,7 @@ router.put("/update-password", protectRoute, updatePassword);
 router.get("/user-details", protectRoute, getUserDetails);
 router.post("/suggest_userids", suggestUserIds);
 router.get("/getrole", getUserRole);
+
+// Live location
+router.get("/getLocation", getUserLocation);
 export default router;

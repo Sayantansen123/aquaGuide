@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import User from "../models/user.model.js"; // Sequelize model
 import VideoGuide from "../models/video.model.js";
 import TextModel from "../models/text.model.js";
+import axios from "axios";
 // --------------------
 // Token Helpers
 // --------------------
@@ -362,14 +363,15 @@ export const getUserRole = async (req, res) => {
     const { userid } = req.query;
 
     if (!userid) {
-      return res.status(400).json({ message: "userid query param is required" });
+      return res
+        .status(400)
+        .json({ message: "userid query param is required" });
     }
 
     const user = await User.findOne({
       where: { userid },
       attributes: ["role"],
     });
-
 
     if (!user) return res.status(404).json({ message: "User not found" });
 
@@ -379,8 +381,6 @@ export const getUserRole = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
-
 
 export const suggestUserIds = async (req, res) => {
   try {
@@ -470,5 +470,38 @@ export const suggestUserIds = async (req, res) => {
   } catch (err) {
     console.error("Error in suggestUserIds:", err);
     return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getUserLocation = async (req, res) => {
+  try {
+    // ✅ 1. Get IP
+    const ip =
+      req?.query?.ip ||
+      req.headers["x-forwarded-for"]?.split(",")[0] ||
+      req.socket.remoteAddress;
+    // ✅ Handle localhost
+    if (!ip || ip.includes("127.0.0.1") || ip.includes("::1")) {
+      return res.json({
+        ip,
+        note: "You are running locally, real IP not available.",
+      });
+    }
+
+    // ✅ 2. Get location from IP
+    const geoRes = await axios.get(`http://ip-api.com/json/${ip}`);
+
+    // ✅ 3. Send result to frontend
+    res.json({
+      ip,
+      country: geoRes.data.country,
+      state: geoRes.data.regionName,
+      city: geoRes.data.city,
+      isp: geoRes.data.isp,
+      lat: geoRes.data.lat,
+      lon: geoRes.data.lon,
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to get location" });
   }
 };

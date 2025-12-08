@@ -81,3 +81,63 @@ export interface UserDetailsResponse {
 export interface RoleResponse {
   role: string;
 }
+
+export interface VideoPayload {
+  title: string;
+  youtubeLink: string;
+  category?: string;
+  description?: string;
+}
+
+export interface VideoResponse {
+  message: string;
+  video: VideoArray;
+}
+
+export interface VideoArray {
+  id: string;
+  title: string;
+  youtubeLink: string;
+  channelAvatarUrl: string;
+  description: string;
+  videoId: string;
+  duration: number | null;
+  viewCount: number;
+  category: string;
+  isActive: boolean;
+  status: "approved" | "pending" | "rejected"; // union for safety
+  submittedBy: string;
+  createdAt: string; // ISO date string
+  updatedAt: string; // ISO date string
+}
+
+export interface approvalIds {
+  ids: string[];
+}
+
+export interface getVideoResponse {
+  message: string;
+  video: VideoArray[];
+}
+
+export interface User {
+  id: string; // UUID
+  userid: string; // username
+  name: string;
+  dob: string; // ISO date string (YYYY-MM-DD)
+  gender: "male" | "female" | "other";
+  email: string;
+  password: string; // hashed password
+  role: "user" | "admin" | "support";
+  status: "active" | "inactive" | "locked";
+  failed_login_attempts: number;
+  last_seen: string; // ISO datetime string
+  community_rating: number;
+  createdAt: string; // ISO datetime
+  updatedAt: string; // ISO datetime
+}
+
+export interface UserDetailsResponse {
+  title: string;
+  users: User[];
+}

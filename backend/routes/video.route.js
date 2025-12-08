@@ -8,7 +8,7 @@ import {
   deleteVideoGuide,
   deleteSelectedVideos,
   getActiveVideoGuides,
-  toggleVideoActiveStatus
+  toggleVideoActiveStatus,
 } from "../controllers/video.controller.js";
 import { protectRoute, adminRoute } from "../middleware/auth.middleware.js";
 
@@ -19,11 +19,11 @@ router.get("/public", getActiveVideoGuides);
 // 🔐 Protected routes
 router.use(protectRoute);
 
-router.post("/",adminRoute, createVideoGuide);
+router.post("/", adminRoute, createVideoGuide);
 router.get("/", adminRoute, getAllVideos);
-router.post("/:id/approve", adminRoute, approveVideo);
-router.post("/:id/reject", adminRoute, rejectVideo);
-router.delete("/:id", adminRoute, deleteVideoGuide);
+router.put("/approve", adminRoute, approveVideo);
+router.put("/reject", adminRoute, rejectVideo);
+router.post("/delete", adminRoute, deleteVideoGuide);
 router.post("/delete-selected", adminRoute, deleteSelectedVideos);
 
 // 🧭 Toggle isActive (admin only)
