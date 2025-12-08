@@ -40,12 +40,6 @@ Comments.init(
     }
 )
 
-Comments.belongsTo(CommunityForum,{
-    foreignKey: "forum_id",
-    onDelete: "CASCADE"
-})
-Comments.belongsTo(User, {
-    foreignKey: "user_id",
-    onDelete: "CASCADE"
-})
+
+
 export default Comments;

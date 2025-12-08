@@ -12,6 +12,7 @@ import speciesPublicRoutes from "./routes/species.public.route.js";
 import cors from "cors";
 import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
+import setupAssociations from "./models/associations.js";
 
 dotenv.config();
 
@@ -94,6 +95,7 @@ const swaggerOptions = {
   apis: ["./routes/*.js"],
 };
 
+setupAssociations();
 const swaggerSpecs = swaggerJsdoc(swaggerOptions);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 

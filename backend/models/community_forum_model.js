@@ -1,6 +1,6 @@
 import { DataTypes, Model } from 'sequelize';
 import sequelize from '../lib/db.js';
-import Comments from './community_forum_comment.model.js';
+
 
 class CommunityForum extends Model { }
 
@@ -28,11 +28,11 @@ CommunityForum.init(
             allowNull: false,
         },
         likes: {
-            type: DataTypes.ARRAY,
+            type: DataTypes.ARRAY(DataTypes.UUIDV4),
             defaultValue: []
         },
         dislike: {
-            type: DataTypes.ARRAY,
+            type: DataTypes.ARRAY(DataTypes.UUIDV4),
             defaultValue: []
         },
         is_private: {
@@ -48,8 +48,5 @@ CommunityForum.init(
         timestamps: true,
     }
 )
-CommunityForum.hasMany(Comments,{
-    foreignKey: "forum_id",
-    onDelete: "CASCADE"
-})
+
 export default CommunityForum;
