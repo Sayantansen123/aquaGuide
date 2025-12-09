@@ -1,5 +1,9 @@
 import express from "express"
-import { add_comment_to_forum, approve_community, create_community_forum, delete_comment, dislike_community, get_community_form_by_id, get_community_forum, image_upload, like_community, reject_community, rejection_approval } from "../controllers/community_forum.controller.js"
+import {
+    add_comment_to_forum, approve_community, create_community_forum, delete_comment, dislike_community,
+    get_approved_community_forum, get_community_form_by_id, get_community_forum, image_upload, like_community,
+    reject_community, rejection_approval
+} from "../controllers/community_forum.controller.js"
 import { adminRoute, protectRoute, supportOrAdminRoute } from "../middleware/auth.middleware.js"
 import upload from "../middleware/file_upload.middleware.js"
 
@@ -22,7 +26,10 @@ const router = express.Router()
  *       200:
  *         description: List of all community forums
  */
-router.get("/get_all_community_forums", get_community_forum)
+router.get("/get_all_community_forums", adminRoute, get_community_forum)
+
+
+router.get("/get_all_approved_community_forum", get_approved_community_forum)
 
 
 /**
