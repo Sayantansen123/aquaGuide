@@ -85,5 +85,4 @@ User.init(
     },
   }
 );
-User.hasMany(Comments, {foreignkey: "user_id"})
 export default User;

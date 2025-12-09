@@ -1,7 +1,7 @@
 import express from "express"
-import { add_comment_to_forum, create_community_forum, delete_comment, dislike_community, get_community_form_by_id, get_community_forum, image_upload, like_community} from "../controllers/community_forum.controller"
-import { protectRoute, supportOrAdminRoute } from "../middleware/auth.middleware"
-import upload from "../middleware/file_upload.middleware"
+import { add_comment_to_forum, create_community_forum, delete_comment, dislike_community, get_community_form_by_id, get_community_forum, image_upload, like_community } from "../controllers/community_forum.controller.js"
+import { protectRoute, supportOrAdminRoute } from "../middleware/auth.middleware.js"
+import upload from "../middleware/file_upload.middleware.js"
 
 const router = express.Router()
 

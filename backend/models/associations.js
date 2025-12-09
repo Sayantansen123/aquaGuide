@@ -14,5 +14,6 @@ Comments.belongsTo(User, {
     foreignKey: "user_id",
     onDelete: "CASCADE"
 });
+User.hasMany(Comments, {foreignkey: "user_id"})
 
 export default function setupAssociations() { }

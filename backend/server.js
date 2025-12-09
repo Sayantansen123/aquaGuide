@@ -18,9 +18,6 @@ import manageUserRoutes from "./routes/admin.manageuser.route.js";
 import speciesRoutes from "./routes/species.route.js";
 import speciesPublicRoutes from "./routes/species.public.route.js";
 import textGuideRoutes from "./routes/text_guide.route.js";
-import cors from "cors";
-import swaggerUi from "swagger-ui-express";
-import swaggerJsdoc from "swagger-jsdoc";
 
 dotenv.config();
 

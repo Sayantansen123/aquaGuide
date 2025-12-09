@@ -1,6 +1,6 @@
-import sequelize from "../lib/db";
-import Comments from "../models/community_forum_comment.model";
-import CommunityForum from "../models/community_forum_model";
+import sequelize from "../lib/db.js";
+import Comments from "../models/community_forum_comment.model.js";
+import CommunityForum from "../models/community_forum_model.js";
 
 export const create_community_forum = async(req, res)=>{
     try{
