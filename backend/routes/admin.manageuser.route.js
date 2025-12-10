@@ -16,28 +16,162 @@ import {
 
 const router = Router();
 
-// Apply base authentication to all admin routes
+/**
+ * @swagger
+ * tags:
+ *   name: AdminUsers
+ *   description: Admin and support user management routes
+ */
+
+
+
+// Base protection for all admin routes
 router.use(protectRoute);
 
-// GET /api/admin/manage-users?status=active
+
+
+/**
+ * @swagger
+ * /api/admin/manage-users:
+ *   get:
+ *     summary: Get users filtered by status (admin/support)
+ *     tags: [AdminUsers]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: status
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: Filter users by status (active, inactive, locked)
+ *     responses:
+ *       200:
+ *         description: User list retrieved
+ *       403:
+ *         description: Forbidden
+ */
 router.get("/manage-users", supportOrAdminRoute, manageUsers);
 
-// POST /api/admin/user/:userId/activate
+
+
+/**
+ * @swagger
+ * /api/admin/user/{userId}/activate:
+ *   post:
+ *     summary: Activate a user (admin only)
+ *     tags: [AdminUsers]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: User activated
+ */
 router.post("/user/:userId/activate", adminRoute, activateUser);
 
-// POST /api/admin/user/:userId/deactivate
+
+
+/**
+ * @swagger
+ * /api/admin/user/{userId}/deactivate:
+ *   post:
+ *     summary: Deactivate a user (admin only)
+ *     tags: [AdminUsers]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: User deactivated
+ */
 router.post("/user/:userId/deactivate", adminRoute, deactivateUser);
 
-// POST /api/admin/user/:userId/unlock
-router.post("/user/:userId/unlock", supportOrAdminRoute, unlockUser); // Note: Uses supportRequired
 
-// POST /api/admin/user/:userId/toggle_admin
+
+/**
+ * @swagger
+ * /api/admin/user/{userId}/unlock:
+ *   post:
+ *     summary: Unlock a user account (admin/support)
+ *     tags: [AdminUsers]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: User unlocked
+ */
+router.post("/user/:userId/unlock", supportOrAdminRoute, unlockUser);
+
+
+
+/**
+ * @swagger
+ * /api/admin/user/{userId}/toggle_admin:
+ *   post:
+ *     summary: Grant or remove admin rights (admin only)
+ *     tags: [AdminUsers]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: Admin role toggled
+ */
 router.post("/user/:userId/toggle_admin", adminRoute, toggleAdmin);
 
-// POST /api/admin/user/:userId/toggle_support
+
+
+/**
+ * @swagger
+ * /api/admin/user/{userId}/toggle_support:
+ *   post:
+ *     summary: Grant or remove support role (admin only)
+ *     tags: [AdminUsers]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: Support role toggled
+ */
 router.post("/user/:userId/toggle_support", adminRoute, toggleSupport);
 
-// POST /api/admin/user/:userId/delete
+
+
+/**
+ * @swagger
+ * /api/admin/user/{userId}/delete:
+ *   post:
+ *     summary: Delete a user (admin only)
+ *     tags: [AdminUsers]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: User deleted
+ */
 router.post("/user/:userId/delete", adminRoute, deleteUser);
+
 
 export default router;

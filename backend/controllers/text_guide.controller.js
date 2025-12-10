@@ -5,32 +5,29 @@ import TextModel from "../models/text.model.js";
  * GET /all_text_guides
  */
 export const get_all_guides = async (req, res) => {
-  try {
-    const page = parseInt(req.query.page) || 1;
-    const per_page = 20;
-    const offset = (page - 1) * per_page;
-
-    const { count, rows } = await TextModel.findAndCountAll({
-      offset,
-      limit: per_page,
-      order: [["created_at", "DESC"]],
-    });
-
-    res.status(200).json({
-      data: rows,
-      pagination: {
-        total_items: count,
-        current_page: page,
-        totalPages: Math.ceil(count / per_page),
-        pageSize: per_page,
-      },
-    });
-  } catch (err) {
-    console.error(err.message);
-    res
-      .status(500)
-      .json({ message: "Some error occured fetching all text guides" });
-  }
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = 20;
+        const offset = (page - 1) * limit
+        const { count, rows } = await TextModel.findAndCountAll({
+            offset,
+            limit,
+            order: [['created_at', 'DESC']]
+        })
+        res.status(200).json({
+            data: rows,
+            pagination: {
+                total_items: count,
+                current_page: page,
+                totalPages: Math.ceil(count / limit),
+                pageSize: limit
+            }
+        })
+    }
+    catch (err) {
+        console.error(err.message)
+        res.status(500).json({ message: "Some error occured fetching all text guides" });
+    }
 };
 
 /**
@@ -38,33 +35,30 @@ export const get_all_guides = async (req, res) => {
  * GET /get_all_guides (or /text_guides_public)
  */
 export const get_text_guide = async (req, res) => {
-  try {
-    const page = parseInt(req.query.page) || 1;
-    const per_page = 20;
-    const offset = (page - 1) * per_page;
-
-    const { count, rows } = await TextModel.findAndCountAll({
-      where: { status: "approved" },
-      offset,
-      limit: per_page,
-      order: [["created_at", "DESC"]],
-    });
-
-    res.status(200).json({
-      data: rows,
-      pagination: {
-        total_items: count,
-        current_page: page,
-        totalPages: Math.ceil(count / per_page),
-        pageSize: per_page,
-      },
-    });
-  } catch (err) {
-    console.error(err.message);
-    res
-      .status(500)
-      .json({ message: "Error fetching all text guides" });
-  }
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = 20;
+        const offset = (page - 1) * limit
+        const { count, rows } = await TextModel.findAndCountAll({
+            where: { status: "approved" },
+            offset,
+            limit,
+            order: [['created_at', 'DESC']]
+        })
+        res.status(200).json({
+            data: rows,
+            pagination: {
+                total_items: count,
+                current_page: page,
+                totalPages: Math.ceil(count / limit),
+                pageSize: limit
+            }
+        })
+    }
+    catch (err) {
+        console.error(err.message)
+        res.status(500).json({ message: "Error fetching all text guides" });
+    }
 };
 
 /**
