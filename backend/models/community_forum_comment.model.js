@@ -1,7 +1,6 @@
 import { DataTypes, Model } from 'sequelize';
 import sequelize from '../lib/db.js';
 import CommunityForum from './community_forum_model.js';
-import User from './user.model.js';
 
 class Comments extends Model { }
 
@@ -27,7 +26,7 @@ Comments.init(
         forum_id: {
             type: DataTypes.UUID,
             references: {
-                model: "Community_Forum",
+                model: CommunityForum,
                 key: "id"
             },
             allowNull: false

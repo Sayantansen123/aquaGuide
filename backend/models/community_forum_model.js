@@ -28,11 +28,11 @@ CommunityForum.init(
             allowNull: false,
         },
         likes: {
-            type: DataTypes.ARRAY(DataTypes.UUIDV4),
+            type: DataTypes.ARRAY(DataTypes.STRING),
             defaultValue: []
         },
         dislike: {
-            type: DataTypes.ARRAY(DataTypes.UUIDV4),
+            type: DataTypes.ARRAY(DataTypes.STRING),
             defaultValue: []
         },
         is_private: {
@@ -64,11 +64,15 @@ CommunityForum.init(
             type: DataTypes.ENUM("pending", "approved", "denied"),
             defaultValue: "pending",
             allowNull: true
+        },
+        image_url: {
+            type: DataTypes.STRING,
+            allowNull: true
         }
     },
     {
         sequelize,
-        modelName: "Community_Forum",
+        modelName: "CommunityForum",
         timestamps: true,
     }
 )

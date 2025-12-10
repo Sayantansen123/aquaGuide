@@ -94,6 +94,14 @@ const swaggerOptions = {
             password: { type: "string", example: "12345678" },
           },
         },
+        CreateForumRequest:{
+          type: "object",
+          required: ["title", "content"],
+          properties: {
+            title: {type: "string", example: "ABC"},
+            content: {type: "string", example: "XYZ"}
+          }
+        }
       },
     },
   },

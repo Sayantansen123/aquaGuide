@@ -28,7 +28,16 @@ const router = express.Router()
  */
 router.get("/get_all_community_forums", adminRoute, get_community_forum)
 
-
+/**
+ * @swagger
+ * /api/community/get_all_approved_community_forum:
+ *   get:
+ *     summary: Get all approved community forums
+ *     tags: [Community]
+ *     responses:
+ *       200:
+ *         description: List of all community forums
+ */
 router.get("/get_all_approved_community_forum", get_approved_community_forum)
 
 
