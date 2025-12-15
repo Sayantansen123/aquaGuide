@@ -12,6 +12,7 @@ import {
   toggleAdmin,
   toggleSupport,
   deleteUser,
+  searchUser
 } from "../controllers/manageUsers.controller.js";
 
 const router = Router();
@@ -39,5 +40,8 @@ router.post("/user/:userId/toggle_support", adminRoute, toggleSupport);
 
 // POST /api/admin/user/:userId/delete
 router.post("/user/:userId/delete", adminRoute, deleteUser);
+
+// GET /api/manage_users/search?userName=
+router.get("/search",supportOrAdminRoute,searchUser)
 
 export default router;
