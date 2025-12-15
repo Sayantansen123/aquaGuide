@@ -2,6 +2,7 @@ import sequelize from "../lib/db.js";
 import "../models/associations.js"; // ensure associations are initialized
 import Comments from "../models/community_forum_comment.model.js";
 import CommunityForum from "../models/community_forum_model.js";
+import User from "../models/user.model.js";
 
 export const create_community_forum = async (req, res) => {
     try {
@@ -119,7 +120,18 @@ export const get_community_form_by_id = async (req, res) => {
             })
         }
         const { count, rows } = await Comments.findAndCountAll({
-            where: { forum_id: id }
+            where: { forum_id: id },
+            attributes: {
+                include: [
+                    [sequelize.col("User.userid"), "UserId"]
+                ]   
+            },
+            include: [
+            {
+                model: User,
+                attributes: []
+            }
+            ]
         })
         res.status(200).json({
             "message": "Community_forum found successfully",
@@ -284,7 +296,7 @@ export const dislike_community = async (req, res) => {
         console.error(err.message);
         if (!res.headersSent) {
             return res.status(500).json({
-                message: "Some error occurred liking the forum"
+                message: "Some error occurred disliking the forum"
             });
         }
     }

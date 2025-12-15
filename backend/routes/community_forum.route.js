@@ -148,56 +148,8 @@ router.delete("/delete_comment",protectRoute, supportOrAdminRoute, delete_commen
  */
 router.post("/add_comment/:forum_id", protectRoute, add_comment_to_forum)
 
-
-/**
- * @swagger
- * /api/community/like:
- *   put:
- *     summary: Like a community forum
- *     tags: [Community]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               forum_id:
- *                 type: string
- *     responses:
- *       200:
- *         description: Forum liked successfully
- *       404:
- *         description: Forum not found
- */
 router.put("/like", protectRoute, like_community)
 
-
-/**
- * @swagger
- * /api/community/dislike:
- *   put:
- *     summary: Dislike a community forum
- *     tags: [Community]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               forum_id:
- *                 type: string
- *     responses:
- *       200:
- *         description: Forum disliked successfully
- *       404:
- *         description: Forum not found
- */
 router.put("/dislike", protectRoute, dislike_community)
 
 
