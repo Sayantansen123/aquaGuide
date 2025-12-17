@@ -1,17 +1,24 @@
+
 import express from "express";
 import session from "express-session";
 import flash from "connect-flash";
 import dotenv from "dotenv";
+import cors from "cors";
+
+import swaggerUi from "swagger-ui-express";
+import swaggerJsdoc from "swagger-jsdoc";
+
 import cookieParser from "cookie-parser";
+import setupAssociations from "./models/associations.js";
 import sequelize from "./lib/db.js"; // Sequelize connection
+
 import authRoutes from "./routes/auth.route.js"; // only auth route
+import communityRoutes from "./routes/community_forum.route.js";
 import videoRoutes from "./routes/video.route.js";
 import manageUserRoutes from "./routes/admin.manageuser.route.js";
 import speciesRoutes from "./routes/species.route.js";
 import speciesPublicRoutes from "./routes/species.public.route.js";
-import cors from "cors";
-import swaggerUi from "swagger-ui-express";
-import swaggerJsdoc from "swagger-jsdoc";
+import textGuideRoutes from "./routes/text_guide.route.js";
 
 dotenv.config();
 
@@ -21,7 +28,7 @@ const app = express();
 app.use(express.json({ limit: "10mb" }));
 app.use(cookieParser());
 
-//cors error fix
+// cors error fix
 app.use(
   cors({
     origin: "http://localhost:8080",
@@ -88,12 +95,52 @@ const swaggerOptions = {
             password: { type: "string", example: "12345678" },
           },
         },
+        CreateForumRequest: {
+          type: "object",
+          required: ["title", "content"],
+          properties: {
+            title: { type: "string", example: "ABC" },
+            content: { type: "string", example: "XYZ" },
+          },
+        },
+        AddCommentRequest: {
+          parameters: [
+            {
+              name: "forum_id",
+              in: "path",
+              required: true,
+              schema: {
+                type: "string",
+                format: "uuid",
+                example: "550e8400-e29b-41d4-a716-446655440000",
+              },
+            },
+          ],
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  required: ["content"],
+                  properties: {
+                    content: {
+                      type: "string",
+                      example: "This is a comment",
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     },
   },
   apis: ["./routes/*.js"],
 };
 
+setupAssociations();
 const swaggerSpecs = swaggerJsdoc(swaggerOptions);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 
@@ -102,6 +149,9 @@ app.use("/api/videos", videoRoutes);
 app.use("/api/manage_users", manageUserRoutes);
 app.use("/api/manage_species", speciesRoutes);
 app.use("/api", speciesPublicRoutes);
+app.use("/api/textguides", textGuideRoutes);
+app.use("/api/community", communityRoutes);
+app.use("/uploads", express.static("uploads"));
 
 app.get("/", (req, res) => {
   res.send(

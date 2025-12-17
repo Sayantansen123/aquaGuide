@@ -38,7 +38,7 @@ TextModel.init(
         },
         status: {
             type: DataTypes.ENUM("pending", "approved", "rejected"),
-            defaultValue: "rejected",
+            defaultValue: "pending",
             allowNull: false
         },
         author: {
@@ -54,7 +54,7 @@ TextModel.init(
         //rejection
         rejection_justification: {
             type: DataTypes.TEXT,
-            allowNull: false
+            allowNull: true
 
         },
         rejection_requested_by: {

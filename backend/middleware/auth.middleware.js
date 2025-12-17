@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
+import TextModel from "../models/text.model.js";
 
 export const protectRoute = async (req, res, next) => {
   try {
@@ -79,7 +80,39 @@ export const supportOnlyRoute = (req, res, next) => {
   if (!req.user || req.user.role !== "support") {
     return res
       .status(403)
-      .json({ message: "Admin or Support privileges required." });
+      .json({ message: "Support only route." });
   }
   next();
+};
+
+
+export const canEditGuideMiddleware = async (req, res, next) => {
+  try {
+    const guideId = req.params.id;
+    const user = req.user;
+
+    const guide = await TextModel.findByPk(guideId);
+    if (!guide) {
+      return res.status(404).json({ message: "Text guide not found" });
+    }
+
+    const isAdmin = user.role === "admin";
+    const isOwner = guide.author === user.id;
+
+    if (!isAdmin && !isOwner) {
+      return res.status(403).json({
+        message: "You are not allowed to modify this text guide",
+      });
+    }
+
+    // attach guide to request so controller doesn't fetch again
+    req.textGuide = guide;
+
+    next();
+  } catch (err) {
+    console.error(err.message);
+    return res.status(500).json({
+      message: "Error verifying guide access permissions",
+    });
+  }
 };

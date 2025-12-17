@@ -20,7 +20,7 @@ export const addSpecies = async (req, res) => {
     });
 
     if (existing) {
-      return res.status(409).json({
+      return res.status(400).json({
         error: "Species already exists in the dictionary",
         existing: {
           fish_id: existing.fish_id,
@@ -44,7 +44,7 @@ export const addSpecies = async (req, res) => {
     });
   } catch (error) {
     console.error("Error adding species:", error);
-    return res.status(400).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };
 
@@ -66,7 +66,7 @@ export const editSpecies = async (req, res) => {
     });
   } catch (error) {
     console.error("Error updating species:", error);
-    return res.status(400).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };
 
@@ -81,7 +81,7 @@ export const deleteSpecies = async (req, res) => {
     if (!species) return res.status(404).json({ error: "Species not found" });
 
     await species.destroy();
-    return res.status(200).json({ message: "Species deleted successfully" });
+    return res.status(204).json({ message: "Species deleted successfully" });
   } catch (error) {
     console.error("Error deleting species:", error);
     return res.status(500).json({ error: "Failed to delete species" });
