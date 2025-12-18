@@ -1,33 +1,42 @@
 import TextModel from "../models/text.model.js";
-
+import User from "../models/user.model.js";
 /**
  * ADMIN/SUPPORT LIST – paginated
  * GET /all_text_guides
  */
 export const get_all_guides = async (req, res) => {
-    try {
-        const page = parseInt(req.query.page) || 1;
-        const limit = 20;
-        const offset = (page - 1) * limit
-        const { count, rows } = await TextModel.findAndCountAll({
-            offset,
-            limit,
-            order: [['created_at', 'DESC']]
-        })
-        res.status(200).json({
-            data: rows,
-            pagination: {
-                total_items: count,
-                current_page: page,
-                totalPages: Math.ceil(count / limit),
-                pageSize: limit
-            }
-        })
-    }
-    catch (err) {
-        console.error(err.message)
-        res.status(500).json({ message: "Some error occured fetching all text guides" });
-    }
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 20;
+    const offset = (page - 1) * limit;
+
+    const { count, rows } = await TextModel.findAndCountAll({
+      offset,
+      limit,
+      order: [["created_at", "DESC"]],
+      include: [
+        {
+          model: User,
+          as: "authorUser",
+          attributes: ["id", "userid", "email", "role"],
+        },]
+    });
+
+    res.status(200).json({
+      data: rows,
+      pagination: {
+        total_items: count,
+        current_page: page,
+        totalPages: Math.ceil(count / limit),
+        pageSize: limit,
+      },
+    });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({
+      message: "Some error occured fetching all text guides",
+    });
+  }
 };
 
 /**
