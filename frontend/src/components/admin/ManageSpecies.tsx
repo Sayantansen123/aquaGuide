@@ -4,11 +4,12 @@ import {Input} from "@/components/ui/input";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
 import {Badge} from "@/components/ui/badge";
-import {Search, Plus, Eye, Pencil, Trash2} from "lucide-react";
+import {Search, Plus, Eye, Pencil, Trash2, ChevronLeft, ChevronRight} from "lucide-react";
 import AddSpeciesModal from "./AddSpeciesModal";
 import {speciesApi} from "@/api/modules/species";
 import type {SpeciesItem} from "@/api/apiTypes";
 import {toast} from "@/components/ui/use-toast";
+import {count} from "console";
 
 interface Species {
 	id: number;
@@ -67,15 +68,24 @@ const ManageSpecies = () => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [currentPage, setCurrentPage] = useState(1);
 	const [totalPages, setTotalPages] = useState(1);
+	const [total, setTotal] = useState(0);
 
 	// Fetch species data
-	const fetchScpecies = async (page: number = 1) => {
+	const fetchSpecies = async (page: number = 1) => {
 		try {
 			setIsLoading(true);
 			const response = await speciesApi.getSpeciesManagement(page);
 			setSpecies(response.data.species);
 			setCurrentPage(response.data.page);
 			setTotalPages(response.data.totalPages);
+			setTotal(response.data.total);
+
+			console.log("Fetched species:", {
+				page: response.data.page,
+				totalPages: response.data.totalPages,
+				total: response.data.total,
+				count: response.data.species.length,
+			});
 		} catch (error) {
 			console.error("Error fetching species:", error);
 			toast({title: "Error", description: "Failed to load species data. Please try again later.", variant: "destructive"});
@@ -85,12 +95,18 @@ const ManageSpecies = () => {
 	};
 
 	useEffect(() => {
-		fetchScpecies(currentPage);
+		fetchSpecies(currentPage);
 	}, [currentPage]);
 
 	const handleModalClose = () => {
 		setIsModalOpen(false);
-		fetchScpecies(currentPage);
+		fetchSpecies(currentPage);
+	};
+
+	const handlePageChange = (newPage: number) => {
+		if (newPage >= 1 && newPage <= totalPages) {
+			setCurrentPage(newPage);
+		}
 	};
 
 	const filteredSpecies = species.filter((spec) => {
@@ -112,15 +128,24 @@ const ManageSpecies = () => {
 		}
 	};
 
-	const getCareLevelBadge = (level: string) => {
+	const getCareLevelBadge = (level?: string) => {
+		if (!level) return <Badge className="bg-muted text-muted-foreground">N/A</Badge>;
+
+		// Convert snake_case to Title Case
+		const formattedLevel = level
+			.split("_")
+			.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+			.join(" ");
+
 		const colors: Record<string, string> = {
 			"Very Easy": "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
 			Easy: "bg-green-500/20 text-green-400 border-green-500/30",
 			Moderate: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
 			Difficult: "bg-orange-500/20 text-orange-400 border-orange-500/30",
+			Expert: "bg-red-500/20 text-red-400 border-red-500/30",
 			"Very Difficult": "bg-red-500/20 text-red-400 border-red-500/30",
 		};
-		return <Badge className={colors[level] || "bg-muted text-muted-foreground"}>{level}</Badge>;
+		return <Badge className={colors[formattedLevel] || "bg-muted text-muted-foreground"}>{formattedLevel}</Badge>;
 	};
 
 	return (
@@ -262,7 +287,64 @@ const ManageSpecies = () => {
 
 			{filteredSpecies.length === 0 && <div className="text-center py-12 text-muted-foreground">No species found matching your filters.</div>}
 
-			<AddSpeciesModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+			{/* Pagination Controls */}
+			{!isLoading && totalPages > 1 && (
+				<div className="flex items-center justify-between border-t border-border pt-4">
+					<div className="text-sm text-muted-foreground">
+						Showing page {currentPage} of {totalPages}
+					</div>
+					<div className="flex items-center gap-2">
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => handlePageChange(currentPage - 1)}
+							disabled={currentPage === 1}
+							className="border-border">
+							<ChevronLeft className="w-4 h-4 mr-1" />
+							Previous
+						</Button>
+
+						{/* Page Numbers */}
+						<div className="hidden sm:flex items-center gap-1">
+							{Array.from({length: Math.min(5, totalPages)}, (_, i) => {
+								let pageNum;
+								if (totalPages <= 5) {
+									pageNum = i + 1;
+								} else if (currentPage <= 3) {
+									pageNum = i + 1;
+								} else if (currentPage >= totalPages - 2) {
+									pageNum = totalPages - 4 + i;
+								} else {
+									pageNum = currentPage - 2 + i;
+								}
+
+								return (
+									<Button
+										key={pageNum}
+										variant={currentPage === pageNum ? "default" : "outline"}
+										size="sm"
+										onClick={() => handlePageChange(pageNum)}
+										className={currentPage === pageNum ? "bg-primary" : "border-border"}>
+										{pageNum}
+									</Button>
+								);
+							})}
+						</div>
+
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => handlePageChange(currentPage + 1)}
+							disabled={currentPage === totalPages}
+							className="border-border">
+							Next
+							<ChevronRight className="w-4 h-4 ml-1" />
+						</Button>
+					</div>
+				</div>
+			)}
+
+			<AddSpeciesModal isOpen={isModalOpen} onClose={() => handleModalClose()} />
 		</div>
 	);
 };
