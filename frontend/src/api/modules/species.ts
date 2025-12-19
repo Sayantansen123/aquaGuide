@@ -12,6 +12,12 @@ export const speciesApi = {
     getSpeciesManagement: (page: number = 1) =>
         httpClient.get<GetSpeciesManagementResponse>(`/api/manage_species/species-management?page=${page}`, {
             headers: { useAuth: true },
-        })
+        }),
+
+    updateSpecies: (speciesId: string, data: SpeciesFormData) =>
+        httpClient.put<AddSpeciesResponse>(`/api/manage_species/species-management/${speciesId}`, data, {
+            headers: { useAuth: true },
+        }),
+
 
 };

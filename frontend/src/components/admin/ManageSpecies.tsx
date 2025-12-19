@@ -9,7 +9,7 @@ import AddSpeciesModal from "./AddSpeciesModal";
 import {speciesApi} from "@/api/modules/species";
 import type {SpeciesItem} from "@/api/apiTypes";
 import {toast} from "@/components/ui/use-toast";
-import {count} from "console";
+import EditSpeciesModal from "./EditSpeciesModal";
 
 interface Species {
 	id: number;
@@ -60,7 +60,9 @@ const mockSpecies: Species[] = [
 ];
 
 const ManageSpecies = () => {
-	const [isModalOpen, setIsModalOpen] = useState(false);
+	const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+	const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+	const [selectedSpecies, setSelectedSpecies] = useState<SpeciesItem | null>(null);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [waterTypeFilter, setWaterTypeFilter] = useState("all");
 	const [statusFilter, setStatusFilter] = useState("all");
@@ -98,8 +100,14 @@ const ManageSpecies = () => {
 		fetchSpecies(currentPage);
 	}, [currentPage]);
 
-	const handleModalClose = () => {
-		setIsModalOpen(false);
+	const handleAddModalClose = () => {
+		setIsAddModalOpen(false);
+		fetchSpecies(currentPage);
+	};
+
+	const handleEditModalClose = () => {
+		setIsEditModalOpen(false);
+		setSelectedSpecies(null);
 		fetchSpecies(currentPage);
 	};
 
@@ -153,7 +161,7 @@ const ManageSpecies = () => {
 			{/* Header with Add Button */}
 			<div className="flex justify-between items-center">
 				<h2 className="text-2xl font-bold text-foreground">Manage Species</h2>
-				<Button onClick={() => setIsModalOpen(true)} className="bg-primary hover:bg-primary/90">
+				<Button onClick={() => setIsAddModalOpen(true)} className="bg-primary hover:bg-primary/90">
 					<Plus className="w-4 h-4 mr-2" />
 					Add New Species
 				</Button>
@@ -234,7 +242,14 @@ const ManageSpecies = () => {
 										<Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10">
 											<Eye className="w-4 h-4" />
 										</Button>
-										<Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/10">
+										<Button
+											size="sm"
+											variant="ghost"
+											className="h-8 w-8 p-0 text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/10"
+											onClick={() => {
+												setSelectedSpecies(species);
+												setIsEditModalOpen(true);
+											}}>
 											<Pencil className="w-4 h-4" />
 										</Button>
 										<Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-400 hover:text-red-300 hover:bg-red-500/10">
@@ -344,7 +359,8 @@ const ManageSpecies = () => {
 				</div>
 			)}
 
-			<AddSpeciesModal isOpen={isModalOpen} onClose={() => handleModalClose()} />
+			<AddSpeciesModal isOpen={isAddModalOpen} onClose={() => handleAddModalClose()} />
+			<EditSpeciesModal isOpen={isEditModalOpen} onClose={() => handleEditModalClose()} species={selectedSpecies} />
 		</div>
 	);
 };
