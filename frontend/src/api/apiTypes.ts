@@ -142,88 +142,41 @@ export interface UserDetailsResponse {
   users: User[];
 }
 
-export interface SpeciesFormData {
-  common_name: string;
-  scientific_name: string;
-  family?: string;
-  origin?: string;
-  water_type: string;
-  min_temp?: number;
-  max_temp?: number;
-  min_ph?: number;
-  max_ph?: number;
-  min_hardness?: number;
-  max_hardness?: number;
-  diet_type?: string;
-  care_level?: string;
-  temperament?: string;
-  max_size_cm?: number;
-  min_tank_size_liters?: number;
-  diet_info?: string;
-  description?: string;
-  primary_image?: string;
-  breeding_difficulty?: string;
-  breeding_notes?: string;
-  status: string;
+export interface TextGuidePayload {
+  title: string;
+  content: string;
 }
 
-export interface AddSpeciesResponse {
-  message: string;
-  fish_id: string;
-  common_name: string;
-  scientific_name: string;
-}
-
-export interface GetSpeciesManagementResponse {
-  page: number;
-  perPage: number;
-  total: number;
-  totalPages: number;
-  species: SpeciesItem[];
-}
-
-export interface SpeciesItem {
-  fish_id: string;
-  common_name: string;
-  scientific_name: string;
-  family?: string;
-  origin?: string;
-  water_type: string;
-  min_temp?: number;
-  max_temp?: number;
-  min_ph?: number;
-  max_ph?: number;
-  min_hardness?: number;
-  max_hardness?: number;
-  diet_type?: string;
-  care_level?: string;
-  temperament?: string;
-  max_size_cm?: number;
-  min_tank_size_liters?: number;
-  diet_info?: string;
-  description: string;
-  primary_image?: string;
-  gallery_images?: string[];
-  breeding_difficulty?: string;
-  breeding_notes?: string;
-  views_count: number;
-  created_by?: string;
-  status: string;
+export interface TextGuide {
+  id: string;
+  title: string;
+  content: string;
   created_at: string;
   updated_at: string;
+  status: "approved" | "pending" | "rejected"; // you can adjust based on your possible statuses
+  authorUser: author;
+  rejection_justification?: string | null;
+  rejection_requested_by?: string | null;
+  rejection_status?: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface SearchSpeciesParams {
-    query?: string;
-    waterType?: string;
-    careLevel?: string;
-    status?: string;
-    page?: number;
-    limit?: number;
+export interface author {
+  id: string;
+  userid: string;
+  email: string;
+  role: "admin" | "user" | "support";
 }
 
-export interface GetSearchResponse {
-  query: string;
-  count: number;
-  results: SpeciesItem[];
+export interface Pagination {
+  total_items: number;
+  current_page: number;
+  totalPages: number;
+  pageSize: number;
+}
+
+export interface GetAllTextGuidesResponse {
+  data: TextGuide[]; // array of guides
+  pagination: Pagination; // pagination info
 }

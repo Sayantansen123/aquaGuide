@@ -26,6 +26,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import { authApi } from "./api/modules/auth";
 import { useEffect } from "react";
 import { setRole } from "./store/userSlice";
+import ViewTextGuide from "./pages/ViewTextGuide";
 
 const queryClient = new QueryClient();
 
@@ -143,6 +144,14 @@ const App = () => {
               element={
                 <Layout>
                   <About />
+                </Layout>
+              }
+            />
+            <Route
+              path="/view/text/:textIds"
+              element={
+                <Layout>
+                  <ViewTextGuide />
                 </Layout>
               }
             />

@@ -26,35 +26,47 @@ const assertCanActOnTargetAdmin = (currentUser, targetUser) => {
 
 // GET /manage-users
 export const manageUsers = async (req, res, next) => {
-    try {
-        const statusFilter = req.query.status;
-        const validStatuses = ['active', 'inactive', 'locked'];
-        
-        // Sequelize query object
-        let queryOptions = {
-            order: [['createdAt', 'ASC']],
-            where: {}
-        };
-        
-        let pageTitle = "Manage All Users";
+  try {
+    const statusFilter = req.query.status;
+    const validStatuses = ["active", "inactive", "locked"];
 
-        if (validStatuses.includes(statusFilter)) {
-            // Filter by the 'status' column (assuming your User model has a 'status' column)
-            queryOptions.where.status = statusFilter;
-            pageTitle = `Manage ${statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)} Users`;
-        }
-        
-        const usersToDisplay = await User.findAll(queryOptions);
+    // pagination
+    const page = parseInt(req.query.page) || 1;
+    const per_page = parseInt(req.query.limit) || 20;
+    const offset = (page - 1) * per_page;
 
-        // In a real Express application rendering HTML, you'd use:
-        // return res.render('admin/manage_users.html', { users: usersToDisplay, title: pageTitle });
-        
-        // For a JSON API, we return the data:
-        return res.json({ title: pageTitle, users: usersToDisplay });
+    let queryOptions = {
+      order: [["createdAt", "ASC"]],
+      where: {},
+      limit: per_page,
+      offset,
+    };
 
-    } catch (error) {
-        next(error); // Pass the error to the Express error handler
+    let pageTitle = "Manage All Users";
+
+    if (validStatuses.includes(statusFilter)) {
+      queryOptions.where.status = statusFilter;
+      pageTitle = `Manage ${
+        statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)
+      } Users`;
     }
+
+    // find + count for pagination
+    const { count, rows } = await User.findAndCountAll(queryOptions);
+
+    return res.json({
+      title: pageTitle,
+      users: rows,
+      pagination: {
+        total_items: count,
+        current_page: page,
+        totalPages: Math.ceil(count / per_page),
+        pageSize: per_page,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 // POST /user/:id/activate

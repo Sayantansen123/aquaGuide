@@ -87,5 +87,8 @@ TextModel.belongsToMany(User, {
   foreignKey: "text_id",
   otherKey: "user_id",
 });
-
+TextModel.belongsTo(User, {
+  foreignKey: "author",
+  as: "authorUser",
+});
 export default TextModel;

@@ -16,74 +16,82 @@ import {
   Trash2,
   ShieldOff,
   Crown,
+  CircleAlert,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { authApi } from "@/api/modules/auth";
 import { User } from "@/api/apiTypes";
-
-// Mock data - replace with actual data from Supabase
-const mockUsers = [
-  {
-    id: "1",
-    username: "aqua_master",
-    email: "admin@aquaguide.com",
-    role: "admin",
-    isLive: true,
-    joinedAt: "2024-01-15",
-  },
-  {
-    id: "2",
-    username: "reef_keeper",
-    email: "support@aquaguide.com",
-    role: "support",
-    isLive: true,
-    joinedAt: "2024-02-20",
-  },
-  {
-    id: "3",
-    username: "coral_lover",
-    email: "coral@example.com",
-    role: "user",
-    isLive: false,
-    joinedAt: "2024-03-10",
-  },
-  {
-    id: "4",
-    username: "fish_whisperer",
-    email: "fish@example.com",
-    role: "user",
-    isLive: true,
-    joinedAt: "2024-04-05",
-  },
-  {
-    id: "5",
-    username: "tank_builder",
-    email: "tank@example.com",
-    role: "user",
-    isLive: false,
-    joinedAt: "2024-05-12",
-  },
-];
-
-// Mock current user ID - replace with actual auth
-const currentUserId = "1";
+import { useUsers } from "@/hooks/useUsers";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { authApi } from "@/api/modules/auth";
+import { toast } from "sonner";
 
 const ManageUsers = () => {
   const userid = localStorage.getItem("userid");
-  const [users] = useState(mockUsers);
-  const [userArray, setUserArray] = useState<User[]>([]);
+  // const [users] = useState(mockUsers);
+  const queryClient = useQueryClient();
+  const { data, isLoading, isError } = useUsers();
+  const userArray: User[] = data?.users || [];
 
-  useEffect(() => {
-    const getUsers = async () => {
-      try {
-        const res = await authApi.getUsersData();
-        setUserArray(res?.data?.users || []);
-      } catch (error) {}
-    };
+  const deactivateUserMutation = useMutation({
+    mutationFn: authApi.deactivateUser,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast.success("User deactivated succesfully");
+    },
 
-    getUsers();
-  }, []);
+    onError: () => {
+      toast.error("Error deactivating support support");
+    },
+  });
+
+  const activateUserMutation = useMutation({
+    mutationFn: authApi.activateUser,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast.success("User activated succesfully");
+    },
+
+    onError: () => {
+      toast.error("Error activating support support");
+    },
+  });
+
+  const toggleSupportMutation = useMutation({
+    mutationFn: authApi.toggleSupport,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast.success("Support toggled successfully");
+    },
+    onError: () => {
+      toast.error("Error toggling support");
+    },
+  });
+
+  const deleteUser = useMutation({
+    mutationFn: authApi.deleteUser,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast.success("Delete user successfully");
+    },
+    onError: () => {
+      toast.error("Error deleting user");
+    },
+  });
+
+  const toggleAdmin = useMutation({
+    mutationFn: authApi.toggleAdmin,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast.success("Toggle admin successfully");
+    },
+    onError: () => {
+      toast.error("Error toggling admin");
+    },
+  });
+
+  if (isLoading) return <p>Loading users...</p>;
+  if (isError) return <p>Failed to load users</p>;
 
   const getRoleBadge = (role: string) => {
     if (role === "admin") {
@@ -102,6 +110,17 @@ const ManageUsers = () => {
         >
           <HeadsetIcon className="h-3 w-3 mr-1" />
           Support
+        </Badge>
+      );
+    }
+    if (role === "inactive") {
+      return (
+        <Badge
+          variant="secondary"
+          className="ml-2 text-xs bg-gray-400 text-black"
+        >
+          <CircleAlert className="h-3 w-3 mr-1" />
+          Inactive
         </Badge>
       );
     }
@@ -130,7 +149,14 @@ const ManageUsers = () => {
 
     return (
       <div className="flex flex-wrap gap-2">
-        <Button variant="outline" size="sm" className="text-xs h-7 px-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="text-xs h-7 px-2"
+          onClick={() => {
+            deactivateUserMutation.mutate(user.id);
+          }}
+        >
           <UserX className="h-3 w-3 mr-1" />
           <span className="hidden sm:inline">Deactivate</span>
         </Button>
@@ -140,6 +166,9 @@ const ManageUsers = () => {
               variant="outline"
               size="sm"
               className="text-xs h-7 px-2 border-primary/50 text-primary hover:bg-primary/10"
+              onClick={() => {
+                toggleSupportMutation.mutate(user.id);
+              }}
             >
               <HeadsetIcon className="h-3 w-3 mr-1" />
               <span className="hidden sm:inline">Make Support</span>
@@ -149,6 +178,9 @@ const ManageUsers = () => {
               variant="outline"
               size="sm"
               className="text-xs h-7 px-2 border-primary/50 text-primary hover:bg-primary/10"
+              onClick={() => {
+                toggleAdmin.mutate(user.id);
+              }}
             >
               <Crown className="h-3 w-3 mr-1" />
               <span className="hidden sm:inline">Make Admin</span>
@@ -160,6 +192,9 @@ const ManageUsers = () => {
             variant="outline"
             size="sm"
             className="text-xs h-7 px-2 border-destructive/50 text-destructive hover:bg-destructive/10"
+            onClick={() => {
+              toggleAdmin.mutate(user.id);
+            }}
           >
             <ShieldOff className="h-3 w-3 mr-1" />
             <span className="hidden sm:inline">Remove Admin</span>
@@ -171,12 +206,22 @@ const ManageUsers = () => {
             variant="outline"
             size="sm"
             className="text-xs h-7 px-2 border-destructive/50 text-destructive hover:bg-destructive/10"
+            onClick={() => {
+              toggleSupportMutation.mutate(user.id);
+            }}
           >
             <ShieldOff className="h-3 w-3 mr-1" />
             <span className="hidden sm:inline">Remove Support</span>
           </Button>
         )}
-        <Button variant="destructive" size="sm" className="text-xs h-7 px-2">
+        <Button
+          variant="destructive"
+          size="sm"
+          className="text-xs h-7 px-2"
+          onClick={() => {
+            deleteUser.mutate(user.id);
+          }}
+        >
           <Trash2 className="h-3 w-3 mr-1" />
           <span className="hidden sm:inline">Delete</span>
         </Button>
@@ -191,7 +236,9 @@ const ManageUsers = () => {
         <div className="flex items-center gap-2">
           <LiveIndicator isLive={true} />
           <span className="font-medium">{user.userid}</span>
-          {getRoleBadge(user.role)}
+          {user.status === "inactive"
+            ? getRoleBadge(user.status)
+            : getRoleBadge(user.role)}
         </div>
       </div>
       <div className="text-sm text-muted-foreground space-y-1">
@@ -207,7 +254,37 @@ const ManageUsers = () => {
         </p>
       </div>
       <div className="pt-2 border-t border-border">
-        <ActionButtons user={user} />
+        {user.status === "inactive" ? (
+          <>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs h-7 px-2 border-primary/50 text-primary hover:bg-primary/10"
+                onClick={() => {
+                  activateUserMutation.mutate(user.id);
+                }}
+              >
+                <Crown className="h-3 w-3 mr-1" />
+                <span className="hidden sm:inline">Make Active</span>
+              </Button>
+
+              <Button
+                variant="destructive"
+                size="sm"
+                className="text-xs h-7 px-2"
+                onClick={() => {
+                  deleteUser.mutate(user.id);
+                }}
+              >
+                <Trash2 className="h-3 w-3 mr-1" />
+                <span className="hidden sm:inline">Delete</span>
+              </Button>
+            </div>
+          </>
+        ) : (
+          <ActionButtons user={user} />
+        )}
       </div>
     </div>
   );
@@ -244,7 +321,9 @@ const ManageUsers = () => {
                 <TableCell>
                   <div className="flex items-center">
                     <span className="font-medium">{user.userid}</span>
-                    {getRoleBadge(user.role)}
+                    {user.status === "inactive"
+                      ? getRoleBadge(user.status)
+                      : getRoleBadge(user.role)}
                   </div>
                 </TableCell>
                 <TableCell className="text-muted-foreground">
@@ -254,7 +333,37 @@ const ManageUsers = () => {
                   {new Date(user.createdAt).toLocaleDateString()}
                 </TableCell>
                 <TableCell>
-                  <ActionButtons user={user} />
+                  {user.status === "inactive" ? (
+                    <>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-xs h-7 px-2 border-primary/50 text-primary hover:bg-primary/10"
+                          onClick={() => {
+                            activateUserMutation.mutate(user.id);
+                          }}
+                        >
+                          <Crown className="h-3 w-3 mr-1" />
+                          <span className="hidden sm:inline">Make Active</span>
+                        </Button>
+
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="text-xs h-7 px-2"
+                          onClick={() => {
+                            deleteUser.mutate(user.id);
+                          }}
+                        >
+                          <Trash2 className="h-3 w-3 mr-1" />
+                          <span className="hidden sm:inline">Delete</span>
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <ActionButtons user={user} />
+                  )}
                 </TableCell>
               </TableRow>
             ))}

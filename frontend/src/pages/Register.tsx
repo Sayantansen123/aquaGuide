@@ -181,7 +181,7 @@ const Register = () => {
                     <SelectItem value="male">Male</SelectItem>
                     <SelectItem value="female">Female</SelectItem>
                     <SelectItem value="other">Other</SelectItem>
-                    <SelectItem value="prefer-not-to-say">
+                    <SelectItem value="rather_not_say">
                       Prefer not to say
                     </SelectItem>
                   </SelectContent>

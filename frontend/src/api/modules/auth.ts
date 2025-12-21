@@ -42,8 +42,73 @@ export const authApi = {
       headers: { useAuth: true },
     }),
 
-  getUsersData: () =>
-    httpClient.get<UserDetailsResponse>("/api/manage_users/manage-users", {
-      headers: { useAuth: true },
-    }),
+  getUsersData: async (): Promise<UserDetailsResponse> => {
+    const res = await httpClient.get<UserDetailsResponse>(
+      "/api/manage_users/manage-users",
+      {
+        headers: { useAuth: true },
+      }
+    );
+    return res.data;
+  },
+
+  deactivateUser: async (userId: string): Promise<string> => {
+    const res = await httpClient.post<string>(
+      `/api/manage_users/user/${userId}/deactivate`,
+      {}, // empty body
+      {
+        headers: { useAuth: true },
+      }
+    );
+
+    return res.data;
+  },
+
+  activateUser: async (userId: string): Promise<string> => {
+    const res = await httpClient.post<string>(
+      `/api/manage_users/user/${userId}/activate`,
+      {}, // empty body
+      {
+        headers: { useAuth: true },
+      }
+    );
+
+    return res.data;
+  },
+
+  toggleSupport: async (userId: string): Promise<string> => {
+    const res = await httpClient.post<string>(
+      `/api/manage_users/user/${userId}/toggle_support`,
+      {}, // empty body
+      {
+        headers: { useAuth: true },
+      }
+    );
+
+    return res.data;
+  },
+
+  deleteUser: async (userId: string): Promise<string> => {
+    const res = await httpClient.post<string>(
+      `/api/manage_users/user/${userId}/delete`,
+      {}, // empty body
+      {
+        headers: { useAuth: true },
+      }
+    );
+
+    return res.data;
+  },
+
+  toggleAdmin: async (userId: string): Promise<string> => {
+    const res = await httpClient.post<string>(
+      `/api/manage_users/user/${userId}/toggle_admin`,
+      {}, // empty body
+      {
+        headers: { useAuth: true },
+      }
+    );
+
+    return res.data;
+  },
 };
