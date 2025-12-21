@@ -44,30 +44,36 @@ export const get_all_guides = async (req, res) => {
  * GET /get_all_guides (or /text_guides_public)
  */
 export const get_text_guide = async (req, res) => {
-    try {
-        const page = parseInt(req.query.page) || 1;
-        const limit = 20;
-        const offset = (page - 1) * limit
-        const { count, rows } = await TextModel.findAndCountAll({
-            where: { status: "approved" },
-            offset,
-            limit,
-            order: [['created_at', 'DESC']]
-        })
-        res.status(200).json({
-            data: rows,
-            pagination: {
-                total_items: count,
-                current_page: page,
-                totalPages: Math.ceil(count / limit),
-                pageSize: limit
-            }
-        })
-    }
-    catch (err) {
-        console.error(err.message)
-        res.status(500).json({ message: "Error fetching all text guides" });
-    }
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 20;
+    const offset = (page - 1) * limit
+    const { count, rows } = await TextModel.findAndCountAll({
+      where: { status: "approved" },
+      offset,
+      limit,
+      order: [['created_at', 'DESC']],
+      include: [
+        {
+          model: User,
+          as: "authorUser",
+          attributes: ["id", "userid", "email", "role"],
+        },]
+    })
+    res.status(200).json({
+      data: rows,
+      pagination: {
+        total_items: count,
+        current_page: page,
+        totalPages: Math.ceil(count / limit),
+        pageSize: limit
+      }
+    })
+  }
+  catch (err) {
+    console.error(err.message)
+    res.status(500).json({ message: "Error fetching all text guides" });
+  }
 };
 
 /**
@@ -317,11 +323,11 @@ export const update_text_guide = async (req, res) => {
     text_guide.title = title;
     text_guide.content = content;
     text_guide.updated_at = new Date(); // or apply the same offset logic if you want
-    if (req.user.role !== "admin"){
-        text_guide.status = "pending";
-    } else{
+    if (req.user.role !== "admin") {
+      text_guide.status = "pending";
+    } else {
 
-        text_guide.status = "approved";
+      text_guide.status = "approved";
     }
     await text_guide.save();
 

@@ -1,6 +1,6 @@
 import SpeciesDictionary from "../models/speciesDictionary.model.js";
-import { Op } from "sequelize";
-
+import { Op,where,fn,col } from "sequelize";
+import User from "../models/user.model.js";
 /**
  * POST /admin/species-management/new
  * Add a new species (no duplicates)
@@ -113,5 +113,79 @@ export const getSpeciesManagement = async (req, res) => {
   } catch (error) {
     console.error("Error fetching species:", error);
     return res.status(500).json({ error: "Failed to fetch species" });
+  }
+};
+
+
+export const searchSpeciesManagement = async (req, res) => {
+  try {
+    const {
+      q,        // search query
+      status,   // draft | published | archived
+      type,     // freshwater | brackish | marine
+      page = 1,
+      limit = 20,
+    } = req.query;
+
+    const perPage = parseInt(limit);
+    const currentPage = parseInt(page);
+    const offset = (currentPage - 1) * perPage;
+
+    /* ------------------ BUILD FILTERS ------------------ */
+    const whereConditions = [];
+
+    if (q && q.trim()) {
+      const searchValue = `%${q.toLowerCase()}%`;
+      whereConditions.push({
+        [Op.or]: [
+          where(fn("LOWER", col("common_name")), { [Op.like]: searchValue }),
+          where(fn("LOWER", col("scientific_name")), { [Op.like]: searchValue }),
+        ],
+      });
+    }
+
+    if (status && ["draft", "published", "archived"].includes(status)) {
+      whereConditions.push({ status });
+    }
+
+    if (type && ["freshwater", "brackish", "marine"].includes(type)) {
+      whereConditions.push({ water_type: type });
+    }
+
+    const finalWhere =
+      whereConditions.length > 0 ? { [Op.and]: whereConditions } : {};
+
+    /* ------------------ TOTAL SPECIES (NO FILTER) ------------------ */
+    const totalSpecies = await SpeciesDictionary.count();
+
+    /* ------------------ FILTERED + PAGINATED ------------------ */
+    const { count: totalFiltered, rows: species } =
+      await SpeciesDictionary.findAndCountAll({
+        where: finalWhere,
+        order: [["created_at", "DESC"]],
+        limit: perPage,
+        offset,
+        include: [
+          {
+            model: User,
+            as: "creator",
+            attributes: ["id", "userid", "email", "role"],
+          },
+        ],
+      });
+
+    return res.status(200).json({
+      page: currentPage,
+      perPage,
+      totalSpecies,
+      totalFiltered,
+      totalPages: Math.ceil(totalFiltered / perPage),
+      species,
+    });
+  } catch (error) {
+    console.error("Error searching species:", error);
+    return res.status(500).json({
+      error: "Failed to search species",
+    });
   }
 };

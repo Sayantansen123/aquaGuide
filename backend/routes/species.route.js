@@ -4,6 +4,7 @@ import {
   editSpecies,
   deleteSpecies,
   getSpeciesManagement,
+  searchSpeciesManagement
 } from "../controllers/manageSpecies.controller.js";
 import { protectRoute, supportOrAdminRoute} from "../middleware/auth.middleware.js";
 
@@ -126,5 +127,11 @@ router.delete(
   deleteSpecies
 );
 
+router.get(
+  "/species/search",
+  protectRoute,
+  supportOrAdminRoute,
+  searchSpeciesManagement
+);
 
 export default router;
