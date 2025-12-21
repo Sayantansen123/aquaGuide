@@ -1,3 +1,4 @@
+import { TextGuide } from "@/api/apiTypes";
 import { textApi } from "@/api/modules/text";
 import {
   Card,
@@ -6,10 +7,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useTextGuidePublic } from "@/hooks/useTextGuidePublic";
 import { BookOpen, Clock } from "lucide-react";
-import { useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
+
+const iconArray = ["🐠", "💧", "🏥", "🌿", "🌱", "🥚", "🌍"];
 
 const guides = [
   {
@@ -71,6 +75,14 @@ const guides = [
 ];
 
 const TextGuides = () => {
+  const [page, setPage] = useState(1);
+  const { data, isLoading, isError } = useTextGuidePublic(page);
+  const textGuidesArray: TextGuide[] = data?.data || [];
+  const navigate = useNavigate();
+
+  const handleTextNavigate = (id: string) => {
+    navigate(`/view/text/${id}`);
+  };
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="mb-6 md:mb-8">
@@ -81,28 +93,33 @@ const TextGuides = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {guides.map((guide) => (
+        {textGuidesArray.map((guide, index) => (
           <Card
             key={guide.id}
             className="hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer"
           >
             <CardHeader>
               <div className="flex items-start gap-4">
-                <div className="text-4xl">{guide.icon}</div>
+                <div className="text-4xl">{iconArray[index % 7]}</div>
                 <div className="flex-1">
-                  <div className="text-xs font-medium text-primary mb-2">
+                  {/* <div className="text-xs font-medium text-primary mb-2">
                     {guide.category}
-                  </div>
+                  </div> */}
                   <CardTitle className="text-lg mb-2">{guide.title}</CardTitle>
-                  <CardDescription className="flex items-center gap-2">
-                    <Clock className="h-3 w-3" />
-                    {guide.readTime}
+                  <CardDescription className="flex  gap-2 flex-col">
+                    <div>Author : {guide.authorUser.userid}</div>
+                    <div>Published On : {guide.createdAt.split("T")[0]}</div>
                   </CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center gap-2 text-sm text-primary hover:underline">
+              <div
+                className="flex items-center gap-2 text-sm text-primary hover:underline"
+                onClick={() => {
+                  handleTextNavigate(guide.id);
+                }}
+              >
                 <BookOpen className="h-4 w-4" />
                 Read Guide
               </div>

@@ -15,6 +15,18 @@ export const textApi = {
 
   getAllGuides: async (page: number): Promise<GetAllTextGuidesResponse> => {
     const res = await httpClient.get<GetAllTextGuidesResponse>(
+      `/api/textguides/all_text_guides?page=${page}`,
+      {
+        headers: { useAuth: true },
+      }
+    );
+    return res.data;
+  },
+
+  getAllGuidesForUser: async (
+    page: number
+  ): Promise<GetAllTextGuidesResponse> => {
+    const res = await httpClient.get<GetAllTextGuidesResponse>(
       `/api/textguides/get_all_guides?page=${page}`,
       {
         headers: { useAuth: true },

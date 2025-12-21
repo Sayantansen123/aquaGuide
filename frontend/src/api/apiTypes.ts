@@ -154,7 +154,7 @@ export interface TextGuide {
   created_at: string;
   updated_at: string;
   status: "approved" | "pending" | "rejected"; // you can adjust based on your possible statuses
-  author: author;
+  authorUser: author;
   rejection_justification?: string | null;
   rejection_requested_by?: string | null;
   rejection_status?: string | null;

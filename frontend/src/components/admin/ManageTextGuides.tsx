@@ -271,7 +271,7 @@ const ManageTextGuides = ({ placeholder }) => {
                       {guide.title}
                     </TableCell>
                     <TableCell className="hidden sm:table-cell">
-                      {guide.author.userid}
+                      {guide.authorUser.userid}
                     </TableCell>
                     <TableCell>{getStatusBadge(guide.status)}</TableCell>
                     <TableCell className="hidden md:table-cell">
