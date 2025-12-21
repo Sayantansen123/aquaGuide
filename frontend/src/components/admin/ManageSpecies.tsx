@@ -56,7 +56,7 @@ const ManageSpecies = () => {
 					waterType: waterTypeFilter !== "all" ? waterTypeFilter : undefined,
 					status: statusFilter !== "all" ? statusFilter : undefined,
 					page: currentPage,
-					limit: 10, // Adjust the limit as needed
+					limit: 20, // Adjust the limit as needed
 				});
 			} else {
 				return speciesApi.getSpeciesManagement(currentPage);
@@ -83,17 +83,10 @@ const ManageSpecies = () => {
 		},
 	});
 
-	// Handle different response structures based on API used
-	const species = shouldSearch ? speciesData?.data.results || [] : speciesData?.data.species || [];
+	const species = speciesData?.data.species || [];
+	const totalPages = speciesData?.data.totalPages || 1;
+	const total = speciesData?.data.total || 0;
 
-	// For search API, we don't have totalPages, so calculate it
-	const totalPages = shouldSearch
-		? 1 // Search API doesn't paginate, returns all results
-		: speciesData?.data.totalPages || 1;
-
-	const total = shouldSearch ? speciesData?.data.count || 0 : speciesData?.data.total || 0;
-
-	
 	const handleAddModalClose = () => {
 		setIsAddModalOpen(false);
 		queryClient.invalidateQueries({queryKey: ["species"]});
@@ -128,14 +121,6 @@ const ManageSpecies = () => {
 			setCurrentPage(newPage);
 		}
 	};
-
-	const filteredSpecies = species.filter((spec) => {
-		const matchesSearch =
-			spec.common_name.toLowerCase().includes(searchQuery.toLowerCase()) || spec.scientific_name.toLowerCase().includes(searchQuery.toLowerCase());
-		const matchesWaterType = waterTypeFilter === "all" || spec.water_type.toLowerCase() === waterTypeFilter.toLowerCase();
-		const matchesStatus = statusFilter === "all" || spec.status === statusFilter;
-		return matchesSearch && matchesWaterType && matchesStatus;
-	});
 
 	const getStatusBadge = (status: SpeciesItem["status"]) => {
 		switch (status) {
@@ -259,14 +244,14 @@ const ManageSpecies = () => {
 								</TableRow>
 							</TableHeader>
 							<TableBody>
-								{filteredSpecies.length === 0 ? (
+								{species.length === 0 ? (
 									<TableRow>
 										<TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
 											No species found matching your filters.
 										</TableCell>
 									</TableRow>
 								) : (
-									filteredSpecies.map((spec) => (
+									species.map((spec) => (
 										<TableRow key={spec.fish_id} className="border-border hover:bg-muted/30">
 											<TableCell>
 												<img
@@ -327,10 +312,10 @@ const ManageSpecies = () => {
 
 					{/* Mobile/Tablet Card View */}
 					<div className="md:hidden space-y-4">
-						{filteredSpecies.length === 0 ? (
+						{species.length === 0 ? (
 							<div className="text-center py-12 text-muted-foreground">No species found matching your filters.</div>
 						) : (
-							filteredSpecies.map((spec) => (
+							species.map((spec) => (
 								<div key={spec.fish_id} className="bg-card border border-border rounded-lg p-4 space-y-4">
 									<div className="flex items-start gap-4">
 										<img
@@ -440,9 +425,7 @@ const ManageSpecies = () => {
 					</div>
 				</div>
 			)}
-			{!isLoading && filteredSpecies.length === 0 && (
-				<div className="text-center py-12 text-muted-foreground">No species found matching your filters.</div>
-			)}
+			{!isLoading && species.length === 0 && <div className="text-center py-12 text-muted-foreground">No species found matching your filters.</div>}
 			<AddSpeciesModal isOpen={isAddModalOpen} onClose={() => handleAddModalClose()} />
 			<EditSpeciesModal isOpen={isEditModalOpen} onClose={() => handleEditModalClose()} species={selectedSpecies} />
 			{/* Delete Confirmation Dialog */}

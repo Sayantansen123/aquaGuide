@@ -31,12 +31,12 @@ export const speciesApi = {
         const queryParams = new URLSearchParams();
         if (params.query) queryParams.append('q', params.query);
         if (params.waterType) queryParams.append('water_type', params.waterType);
+        if (params.careLevel) queryParams.append('care_level', params.careLevel);
         if (params.status) queryParams.append('status', params.status);
         if (params.page) queryParams.append('page', params.page.toString());
-        if (params.limit) queryParams.append('limit', params.limit.toString());
 
 
-        return httpClient.get<GetSearchResponse>(`/api/public/species/search?${queryParams.toString()}`, {
+        return httpClient.get<GetSpeciesManagementResponse>(`/api/species-dictionary?${queryParams.toString()}`, {
             headers: { useAuth: true },
         });
     },
