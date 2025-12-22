@@ -120,6 +120,14 @@ export interface getVideoResponse {
   video: VideoArray[];
 }
 
+export interface Guest {
+  id: string;
+  guest_name: string;
+  ip_address: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface User {
   id: string; // UUID
   userid: string; // username

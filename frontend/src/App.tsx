@@ -36,6 +36,18 @@ const App = () => {
   const role = useSelector((state: RootState) => state.user.role);
 
   useEffect(() => {
+    const createGuest = async () => {
+      try {
+        const res = authApi.createGuest();
+      } catch (error) {}
+    };
+
+    if (!userid) {
+      createGuest();
+    }
+  }, []);
+
+  useEffect(() => {
     const getRoles = async () => {
       try {
         const res = await authApi.getRole(userid);

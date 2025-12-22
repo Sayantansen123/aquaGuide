@@ -9,6 +9,7 @@ import {
   UpdatePasswordPayload,
   UserDetailsResponse,
   RoleResponse,
+  Guest,
 } from "@/api/apiTypes";
 
 export const authApi = {
@@ -110,5 +111,9 @@ export const authApi = {
     );
 
     return res.data;
+  },
+
+  createGuest: async () => {
+    const res = await httpClient.post<Guest>(`/api/auth/guestCreate`, {});
   },
 };
