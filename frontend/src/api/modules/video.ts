@@ -31,4 +31,14 @@ export const videoApi = {
     httpClient.post<any>("/api/videos/delete", data, {
       headers: { useAuth: true },
     }),
+
+  getVideoGuides: async (page: number): Promise<getVideoResponse> => {
+    const res = await httpClient.get<getVideoResponse>(
+      `/api/videos/public?page=${page}`,
+      {
+        headers: { useAuth: true },
+      }
+    );
+    return res.data;
+  },
 };
