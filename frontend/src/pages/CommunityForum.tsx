@@ -3,20 +3,29 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { MessageSquare, ThumbsUp, Eye } from "lucide-react";
 import { useCommunityForumPublic } from "@/hooks/useCommunityForumPublic";
+import { useState } from "react";
 
 
-let page_number = 1;
 
 
 const CommunityForum = () => {
+  const [pageNumber,setPageNumber]= useState(1);
 
   const{
   data,
   isLoading,
   isError,
-  }= useCommunityForumPublic(page_number++);
+  }= useCommunityForumPublic(pageNumber);
 
-  const forumPosts = data?.data??[];
+  const handleNextPage = () => {
+    setPageNumber((prevPage) => prevPage + 1);
+  }
+
+  const handlePrevPage = () => {
+    setPageNumber((prevPage) => Math.max(prevPage - 1, 1));
+  }
+
+  const forumPosts = data?.data?? [];
 
   if (isLoading) return <div>Loading...</div>;
   if (isError) return <div>Error</div>;
@@ -68,6 +77,18 @@ const CommunityForum = () => {
               </CardContent>
             </Card>
           ))}
+        </div>
+        <div className="flex justify-between mt-6">
+        <Button
+          onClick={handlePrevPage}
+          disabled={pageNumber === 1}
+          variant="secondary"
+        >
+          Previous
+        </Button>
+        <Button onClick={handleNextPage} variant="default">
+          Next
+        </Button>
         </div>
       </div>
     </div>

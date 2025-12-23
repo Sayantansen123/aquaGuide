@@ -12,9 +12,8 @@ import {
   toggleAdmin,
   toggleSupport,
   deleteUser,
-  searchUser,
+  searchUser
 } from "../controllers/manageUsers.controller.js";
-import { getUserSummaryStats } from "../controllers/usersummary.controller.js";
 
 const router = Router();
 
@@ -25,8 +24,12 @@ const router = Router();
  *   description: Admin and support user management routes
  */
 
+
+
 // Base protection for all admin routes
 router.use(protectRoute);
+
+
 
 /**
  * @swagger
@@ -51,6 +54,8 @@ router.use(protectRoute);
  */
 router.get("/manage-users", supportOrAdminRoute, manageUsers);
 
+
+
 /**
  * @swagger
  * /api/admin/user/{userId}/activate:
@@ -68,6 +73,8 @@ router.get("/manage-users", supportOrAdminRoute, manageUsers);
  *         description: User activated
  */
 router.post("/user/:userId/activate", adminRoute, activateUser);
+
+
 
 /**
  * @swagger
@@ -87,6 +94,8 @@ router.post("/user/:userId/activate", adminRoute, activateUser);
  */
 router.post("/user/:userId/deactivate", adminRoute, deactivateUser);
 
+
+
 /**
  * @swagger
  * /api/admin/user/{userId}/unlock:
@@ -104,6 +113,8 @@ router.post("/user/:userId/deactivate", adminRoute, deactivateUser);
  *         description: User unlocked
  */
 router.post("/user/:userId/unlock", supportOrAdminRoute, unlockUser);
+
+
 
 /**
  * @swagger
@@ -123,6 +134,8 @@ router.post("/user/:userId/unlock", supportOrAdminRoute, unlockUser);
  */
 router.post("/user/:userId/toggle_admin", adminRoute, toggleAdmin);
 
+
+
 /**
  * @swagger
  * /api/admin/user/{userId}/toggle_support:
@@ -140,6 +153,8 @@ router.post("/user/:userId/toggle_admin", adminRoute, toggleAdmin);
  *         description: Support role toggled
  */
 router.post("/user/:userId/toggle_support", adminRoute, toggleSupport);
+
+
 
 /**
  * @swagger
@@ -159,9 +174,7 @@ router.post("/user/:userId/toggle_support", adminRoute, toggleSupport);
  */
 router.post("/user/:userId/delete", adminRoute, deleteUser);
 
-router.get("/stats/user-summary", supportOrAdminRoute, getUserSummaryStats);
-
 // GET /api/manage_users/search?userName=
-router.get("/search", supportOrAdminRoute, searchUser);
+router.get("/search",supportOrAdminRoute,searchUser)
 
 export default router;
