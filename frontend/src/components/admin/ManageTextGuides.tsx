@@ -234,69 +234,79 @@ const ManageTextGuides = ({ placeholder }) => {
           <CardTitle className="text-lg">Submitted Guides</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-border">
-                  <TableHead className="w-12">
-                    <Checkbox
-                      checked={
-                        selectedGuides.length === textGuidesArray.length &&
-                        textGuidesArray.length > 0
-                      }
-                      onCheckedChange={handleSelectAll}
-                    />
-                  </TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead className="hidden sm:table-cell">Author</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="hidden md:table-cell">
-                    Submitted On
-                  </TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {textGuidesArray.map((guide) => (
-                  <TableRow key={guide.id} className="border-border">
-                    <TableCell>
+          {isLoading ? (
+            <div className="p-4 pl-8 pb-4 text-lg">Loading.....</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-border">
+                    <TableHead className="w-12">
                       <Checkbox
-                        checked={selectedGuides.includes(guide.id)}
-                        onCheckedChange={(checked) =>
-                          handleSelectGuide(guide.id, checked as boolean)
+                        checked={
+                          selectedGuides.length === textGuidesArray.length &&
+                          textGuidesArray.length > 0
                         }
+                        onCheckedChange={handleSelectAll}
                       />
-                    </TableCell>
-                    <TableCell className="font-medium max-w-[150px] md:max-w-none truncate">
-                      {guide.title}
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell">
-                      {guide.authorUser.userid}
-                    </TableCell>
-                    <TableCell>{getStatusBadge(guide.status)}</TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      {guide.createdAt.slice(0, 10)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() => handleNavigate(guide.id)}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
+                    </TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead className="hidden sm:table-cell">
+                      Author
+                    </TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="hidden md:table-cell">
+                      Submitted On
+                    </TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {textGuidesArray.map((guide) => (
+                    <TableRow key={guide.id} className="border-border">
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedGuides.includes(guide.id)}
+                          onCheckedChange={(checked) =>
+                            handleSelectGuide(guide.id, checked as boolean)
+                          }
+                        />
+                      </TableCell>
+                      <TableCell className="font-medium max-w-[150px] md:max-w-none truncate">
+                        {guide.title}
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell">
+                        {guide.authorUser.userid}
+                      </TableCell>
+                      <TableCell>{getStatusBadge(guide.status)}</TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        {guide.createdAt.slice(0, 10)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => handleNavigate(guide.id)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

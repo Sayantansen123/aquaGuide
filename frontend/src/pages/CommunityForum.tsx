@@ -5,12 +5,6 @@ import { MessageSquare, ThumbsUp, Eye } from "lucide-react";
 import { useCommunityForumPublic } from "@/hooks/useCommunityForumPublic";
 
 
-const get_community_forum = async() => {
-  const res = await fetch("")
-  if(!res.ok){throw new Error("Failed to fetch community forums")}
-  return res.json()
-}
-
 let page_number = 1;
 
 

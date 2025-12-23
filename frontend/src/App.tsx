@@ -27,6 +27,7 @@ import { authApi } from "./api/modules/auth";
 import { useEffect } from "react";
 import { setRole } from "./store/userSlice";
 import ViewTextGuide from "./pages/ViewTextGuide";
+import ViewFish from "./pages/ViewFish";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,18 @@ const App = () => {
   const userid = localStorage.getItem("userid");
   const dispatch = useDispatch();
   const role = useSelector((state: RootState) => state.user.role);
+
+  useEffect(() => {
+    const createGuest = async () => {
+      try {
+        const res = authApi.createGuest();
+      } catch (error) {}
+    };
+
+    if (!userid) {
+      createGuest();
+    }
+  }, []);
 
   useEffect(() => {
     const getRoles = async () => {
@@ -83,6 +96,14 @@ const App = () => {
               element={
                 <Layout>
                   <TextGuides />
+                </Layout>
+              }
+            />
+            <Route
+              path="/view/fish/:id"
+              element={
+                <Layout>
+                  <ViewFish />
                 </Layout>
               }
             />

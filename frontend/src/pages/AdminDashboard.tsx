@@ -18,6 +18,7 @@ import ManageTextGuides from "@/components/admin/ManageTextGuides";
 import ManageVideoGuides from "@/components/admin/ManageVideoGuides";
 import ManageUsers from "@/components/admin/ManageUsers";
 import ManageSpecies from "@/components/admin/ManageSpecies";
+import { DashboardContent } from "@/components/admin/DashboardContent";
 
 type TabType =
   | "dashboard"
@@ -99,7 +100,7 @@ const AdminDashboard = () => {
       case "manage-forum":
         return <ManageForumContent />;
       case "manage-text-guides":
-        return <ManageTextGuides />;
+        return <ManageTextGuides placeholder={"Start typing"} />;
       case "manage-video-guides":
         return <ManageVideoGuides />;
       case "manage-species":
@@ -144,33 +145,33 @@ const AdminDashboard = () => {
 };
 
 // Placeholder content components
-const DashboardContent = () => (
-  <div className="space-y-6">
-    <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-    <p className="text-muted-foreground">
-      Welcome to the admin dashboard. Select a section from the sidebar to
-      manage your content.
-    </p>
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      {[
-        { label: "Total Users", value: "1,234" },
-        { label: "Forum Posts", value: "567" },
-        { label: "Species", value: "890" },
-        { label: "Active Sessions", value: "45" },
-      ].map((stat) => (
-        <div
-          key={stat.label}
-          className="p-6 bg-card rounded-xl border border-border"
-        >
-          <p className="text-sm text-muted-foreground">{stat.label}</p>
-          <p className="text-2xl font-bold text-foreground mt-2">
-            {stat.value}
-          </p>
-        </div>
-      ))}
-    </div>
-  </div>
-);
+// const DashboardContent = () => (
+//   <div className="space-y-6">
+//     <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+//     <p className="text-muted-foreground">
+//       Welcome to the admin dashboard. Select a section from the sidebar to
+//       manage your content.
+//     </p>
+//     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+//       {[
+//         { label: "Total Users", value: "1,234" },
+//         { label: "Forum Posts", value: "567" },
+//         { label: "Species", value: "890" },
+//         { label: "Active Sessions", value: "45" },
+//       ].map((stat) => (
+//         <div
+//           key={stat.label}
+//           className="p-6 bg-card rounded-xl border border-border"
+//         >
+//           <p className="text-sm text-muted-foreground">{stat.label}</p>
+//           <p className="text-2xl font-bold text-foreground mt-2">
+//             {stat.value}
+//           </p>
+//         </div>
+//       ))}
+//     </div>
+//   </div>
+// );
 
 const ManageUsersContent = () => (
   <div className="space-y-6">

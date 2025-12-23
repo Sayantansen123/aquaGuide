@@ -120,6 +120,14 @@ export interface getVideoResponse {
   video: VideoArray[];
 }
 
+export interface Guest {
+  id: string;
+  guest_name: string;
+  ip_address: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface User {
   id: string; // UUID
   userid: string; // username
@@ -179,6 +187,104 @@ export interface Pagination {
 export interface GetAllTextGuidesResponse {
   data: TextGuide[]; // array of guides
   pagination: Pagination; // pagination info
+}
+
+export interface SpeciesFormData {
+  common_name: string;
+  scientific_name: string;
+  family?: string;
+  origin?: string;
+  water_type: string;
+  min_temp?: number;
+  max_temp?: number;
+  min_ph?: number;
+  max_ph?: number;
+  min_hardness?: number;
+  max_hardness?: number;
+  diet_type?: string;
+  care_level?: string;
+  temperament?: string;
+  max_size_cm?: number;
+  min_tank_size_liters?: number;
+  diet_info?: string;
+  description?: string;
+  primary_image?: string;
+  breeding_difficulty?: string;
+  breeding_notes?: string;
+  status: string;
+}
+
+export interface AddSpeciesResponse {
+  message: string;
+  fish_id: string;
+  common_name: string;
+  scientific_name: string;
+}
+
+export interface GetSpeciesManagementResponse {
+  page: number;
+  perPage: number;
+  total: number;
+  totalPages: number;
+  species: SpeciesItem[];
+}
+
+export interface SpeciesItem {
+  fish_id: string;
+  common_name: string;
+  scientific_name: string;
+  family?: string;
+  origin?: string;
+  water_type: string;
+  min_temp?: number;
+  max_temp?: number;
+  min_ph?: number;
+  max_ph?: number;
+  min_hardness?: number;
+  max_hardness?: number;
+  diet_type?: string;
+  care_level?: string;
+  temperament?: string;
+  max_size_cm?: number;
+  min_tank_size_liters?: number;
+  diet_info?: string;
+  description: string;
+  primary_image?: string;
+  gallery_images?: string[];
+  breeding_difficulty?: string;
+  breeding_notes?: string;
+  views_count: number;
+  created_by?: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SearchSpeciesParams {
+  query?: string;
+  waterType?: string;
+  careLevel?: string;
+  status?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface GetSearchResponse {
+  query: string;
+  count: number;
+  results: SpeciesItem[];
+}
+export interface UserSummaryStatsResponse {
+  success: true;
+  data: {
+    total_registered_users: number;
+    inactive_users: number;
+    active_users: number;
+    locked_users: number;
+    support_users: number;
+    admin_users: number;
+    guest_users: number;
+  };
 }
 
 export interface TextGuidePayload {

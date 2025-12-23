@@ -1,4 +1,4 @@
-import {useState} from "react";
+import {useState, useEffect} from "react";
 import {Dialog, DialogContent, DialogHeader, DialogTitle} from "@/components/ui/dialog";
 import {toast} from "sonner";
 import {Button} from "@/components/ui/button";
@@ -8,16 +8,17 @@ import {Textarea} from "@/components/ui/textarea";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {ScrollArea} from "@/components/ui/scroll-area";
 import {Separator} from "@/components/ui/separator";
-import {SpeciesFormData} from "@/api/apiTypes";
+import {SpeciesFormData, SpeciesItem} from "@/api/apiTypes";
 import {speciesApi} from "@/api/modules/species";
 import {Link as LinkIcon, X} from "lucide-react";
 
-interface AddSpeciesModalProps {
+interface EditSpeciesModalProps {
 	isOpen: boolean;
 	onClose: () => void;
+	species: SpeciesItem | null;
 }
 
-const AddSpeciesModal = ({isOpen, onClose}: AddSpeciesModalProps) => {
+const EditSpeciesModal = ({isOpen, onClose, species}: EditSpeciesModalProps) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
@@ -46,22 +47,54 @@ const AddSpeciesModal = ({isOpen, onClose}: AddSpeciesModalProps) => {
 		status: "draft",
 	});
 
+	// Populate form when species data changes
+	useEffect(() => {
+		if (species) {
+			setFormData({
+				commonName: species.common_name || "",
+				scientificName: species.scientific_name || "",
+				family: species.family || "",
+				origin: species.origin || "",
+				waterType: species.water_type || "",
+				minTemp: species.min_temp?.toString() || "",
+				maxTemp: species.max_temp?.toString() || "",
+				minPh: species.min_ph?.toString() || "",
+				maxPh: species.max_ph?.toString() || "",
+				minHardness: species.min_hardness?.toString() || "",
+				maxHardness: species.max_hardness?.toString() || "",
+				dietType: species.diet_type || "",
+				careLevel: species.care_level?.replace(/_/g, "-") || "", // Convert underscores to hyphens
+				temperament: species.temperament?.replace(/_/g, "-") || "",
+				maxSize: species.max_size_cm?.toString() || "",
+				minTankSize: species.min_tank_size_liters?.toString() || "",
+				dietInfo: species.diet_info || "",
+				description: species.description || "",
+				imageUrl: species.primary_image || "",
+				breedingDifficulty: species.breeding_difficulty?.replace(/_/g, "-") || "",
+				breedingNotes: species.breeding_notes || "",
+				status: species.status || "draft",
+			});
+		}
+	}, [species]);
+
 	const handleInputChange = (field: string, value: string) => {
 		setFormData((prev) => ({...prev, [field]: value}));
 	};
 
 	const handleSubmit = async () => {
-		console.log("Form Data:", formData);
+		if (!species) return;
 
 		try {
 			setIsLoading(true);
 			setError(null);
+
 			// Validate required fields
-			if (!formData.commonName || !formData.scientificName || !formData.waterType) {
-				setError("Please fill in all required fields (Common Name, Scientific Name, and Water Type)");
+			if (!formData.commonName || !formData.scientificName || !formData.waterType || !formData.description) {
+				setError("Please fill in all required fields (Common Name, Scientific Name, Water Type, and Description)");
 				setIsLoading(false);
 				return;
 			}
+
 			// Transform camelCase to snake_case for backend
 			const speciesData: SpeciesFormData = {
 				common_name: formData.commonName,
@@ -76,56 +109,29 @@ const AddSpeciesModal = ({isOpen, onClose}: AddSpeciesModalProps) => {
 				min_hardness: formData.minHardness ? parseFloat(formData.minHardness) : undefined,
 				max_hardness: formData.maxHardness ? parseFloat(formData.maxHardness) : undefined,
 				diet_type: formData.dietType || undefined,
-				care_level: formData.careLevel ? formData.careLevel.replace(/-/g, "_") : undefined, // Convert hyphens to underscores
-				temperament: formData.temperament ? formData.temperament.replace(/-/g, "_") : undefined, // Convert hyphens to underscores
-				max_size_cm: formData.maxSize ? parseFloat(formData.maxSize) : undefined, // Fixed field name
-				min_tank_size_liters: formData.minTankSize ? parseFloat(formData.minTankSize) : undefined, // Fixed field name
+				care_level: formData.careLevel ? formData.careLevel.replace(/-/g, "_") : undefined,
+				temperament: formData.temperament ? formData.temperament.replace(/-/g, "_") : undefined,
+				max_size_cm: formData.maxSize ? parseFloat(formData.maxSize) : undefined,
+				min_tank_size_liters: formData.minTankSize ? parseFloat(formData.minTankSize) : undefined,
 				diet_info: formData.dietInfo || undefined,
-				description: formData.description, // Now required
-				primary_image: formData.imageUrl || undefined, // Fixed field name
-				breeding_difficulty: formData.breedingDifficulty ? formData.breedingDifficulty.replace(/-/g, "_") : undefined, // Convert hyphens to underscores
+				description: formData.description,
+				primary_image: formData.imageUrl || undefined,
+				breeding_difficulty: formData.breedingDifficulty ? formData.breedingDifficulty.replace(/-/g, "_") : undefined,
 				breeding_notes: formData.breedingNotes || undefined,
 				status: formData.status,
 			};
 
-			const response = await speciesApi.addSpecies(speciesData);
+			const response = await speciesApi.updateSpecies(species.fish_id, speciesData);
 
-			console.log("Species added successfully:", response.data);
+			console.log("Species updated successfully:", response.data);
 
-			// Reset form
-			setFormData({
-				commonName: "",
-				scientificName: "",
-				family: "",
-				origin: "",
-				waterType: "",
-				minTemp: "",
-				maxTemp: "",
-				minPh: "",
-				maxPh: "",
-				minHardness: "",
-				maxHardness: "",
-				dietType: "",
-				careLevel: "",
-				temperament: "",
-				maxSize: "",
-				minTankSize: "",
-				dietInfo: "",
-				description: "",
-				imageUrl: "",
-				breedingDifficulty: "",
-				breedingNotes: "",
-				status: "draft",
-			});
-
-			toast.success(`Species "${response.data.common_name}" added successfully!`);
+			toast.success(`Species "${formData.commonName}" updated successfully!`);
 			onClose();
 		} catch (err) {
-			console.error("Error adding species:", err);
-			// Handle axios error response
-			const errorMessage = err.response?.data?.error || err.message || "Failed to add species";
+			console.error("Error updating species:", err);
+			const errorMessage = err.response?.data?.error || err.message || "Failed to update species";
 			setError(errorMessage);
-			toast.error(err instanceof Error ? err.message : "Failed to add species");
+			toast.error(errorMessage);
 		} finally {
 			setIsLoading(false);
 		}
@@ -135,11 +141,18 @@ const AddSpeciesModal = ({isOpen, onClose}: AddSpeciesModalProps) => {
 		<Dialog open={isOpen} onOpenChange={onClose}>
 			<DialogContent className="max-w-4xl max-h-[90vh] p-0 bg-card border-border">
 				<DialogHeader className="p-6 pb-0">
-					<DialogTitle className="text-2xl font-bold text-foreground">Add New Species</DialogTitle>
+					<DialogTitle className="text-2xl font-bold text-foreground">Edit Species</DialogTitle>
 				</DialogHeader>
 
 				<ScrollArea className="max-h-[calc(90vh-120px)] px-6">
 					<div className="space-y-6 pb-6">
+						{/* Error Display */}
+						{error && (
+							<div className="bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded-lg">
+								<p className="text-sm font-medium">{error}</p>
+							</div>
+						)}
+
 						{/* Basic Information */}
 						<div className="space-y-4">
 							<h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
@@ -316,7 +329,7 @@ const AddSpeciesModal = ({isOpen, onClose}: AddSpeciesModalProps) => {
 											<SelectItem value="easy">Easy</SelectItem>
 											<SelectItem value="moderate">Moderate</SelectItem>
 											<SelectItem value="difficult">Difficult</SelectItem>
-											<SelectItem value="very-difficult">Very Difficult</SelectItem>
+											<SelectItem value="expert">Expert</SelectItem>
 										</SelectContent>
 									</Select>
 								</div>
@@ -368,7 +381,7 @@ const AddSpeciesModal = ({isOpen, onClose}: AddSpeciesModalProps) => {
 								/>
 							</div>
 							<div className="space-y-2">
-								<Label htmlFor="description">Description</Label>
+								<Label htmlFor="description">Description *</Label>
 								<Textarea
 									id="description"
 									placeholder="General description of the species..."
@@ -387,42 +400,38 @@ const AddSpeciesModal = ({isOpen, onClose}: AddSpeciesModalProps) => {
 								<span className="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center text-sm">4</span>
 								Media
 							</h3>
-							<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-								{/* Primary Image */}
-								<div className="space-y-2">
-									<Label>Primary Image URL</Label>
-
-									<div className="relative">
-										<LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-										<Input
-											id="imageUrl"
-											type="url"
-											placeholder="https://example.com/image.jpg"
-											value={formData.imageUrl}
-											onChange={(e) => handleInputChange("imageUrl", e.target.value)}
-											className="bg-background border-border pl-10"
-										/>
-									</div>
-									{formData.imageUrl && (
-										<div className="relative inline-block mt-2 border border-border rounded-lg p-2">
-											<img
-												src={formData.imageUrl}
-												alt="Preview"
-												className="max-h-40 rounded object-cover"
-												onError={(e) => {
-													e.currentTarget.src =
-														"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='160'%3E%3Crect fill='%23ddd' width='200' height='160'/%3E%3Ctext fill='%23999' x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle'%3EInvalid URL%3C/text%3E%3C/svg%3E";
-												}}
-											/>
-											<button
-												onClick={() => handleInputChange("imageUrl", "")}
-												type="button"
-												className="absolute -top-2 -right-2 w-6 h-6 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center hover:bg-destructive/90">
-												<X className="w-4 h-4" />
-											</button>
-										</div>
-									)}
+							<div className="space-y-2">
+								<Label htmlFor="imageUrl">Image URL</Label>
+								<div className="relative">
+									<LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+									<Input
+										id="imageUrl"
+										type="url"
+										placeholder="https://example.com/image.jpg"
+										value={formData.imageUrl}
+										onChange={(e) => handleInputChange("imageUrl", e.target.value)}
+										className="bg-background border-border pl-10"
+									/>
 								</div>
+								{formData.imageUrl && (
+									<div className="relative inline-block mt-2 border border-border rounded-lg p-2">
+										<img
+											src={formData.imageUrl}
+											alt="Preview"
+											className="max-h-40 rounded object-cover"
+											onError={(e) => {
+												e.currentTarget.src =
+													"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='160'%3E%3Crect fill='%23ddd' width='200' height='160'/%3E%3Ctext fill='%23999' x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle'%3EInvalid URL%3C/text%3E%3C/svg%3E";
+											}}
+										/>
+										<button
+											onClick={() => handleInputChange("imageUrl", "")}
+											type="button"
+											className="absolute -top-2 -right-2 w-6 h-6 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center hover:bg-destructive/90">
+											<X className="w-4 h-4" />
+										</button>
+									</div>
+								)}
 							</div>
 						</div>
 
@@ -490,11 +499,11 @@ const AddSpeciesModal = ({isOpen, onClose}: AddSpeciesModalProps) => {
 
 				{/* Footer Actions */}
 				<div className="flex flex-col sm:flex-row gap-3 p-6 pt-4 border-t border-border">
-					<Button variant="outline" onClick={onClose} className="flex-1 sm:flex-none">
+					<Button variant="outline" onClick={onClose} className="flex-1 sm:flex-none" disabled={isLoading}>
 						Cancel
 					</Button>
-					<Button onClick={handleSubmit} className="flex-1 sm:flex-none bg-primary hover:bg-primary/90">
-						Add Species
+					<Button onClick={handleSubmit} className="flex-1 sm:flex-none bg-primary hover:bg-primary/90" disabled={isLoading}>
+						{isLoading ? "Updating..." : "Update Species"}
 					</Button>
 				</div>
 			</DialogContent>
@@ -502,4 +511,4 @@ const AddSpeciesModal = ({isOpen, onClose}: AddSpeciesModalProps) => {
 	);
 };
 
-export default AddSpeciesModal;
+export default EditSpeciesModal;

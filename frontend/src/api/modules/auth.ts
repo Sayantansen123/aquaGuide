@@ -9,6 +9,8 @@ import {
   UpdatePasswordPayload,
   UserDetailsResponse,
   RoleResponse,
+  Guest,
+  UserSummaryStatsResponse,
 } from "@/api/apiTypes";
 
 export const authApi = {
@@ -104,6 +106,21 @@ export const authApi = {
     const res = await httpClient.post<string>(
       `/api/manage_users/user/${userId}/toggle_admin`,
       {}, // empty body
+      {
+        headers: { useAuth: true },
+      }
+    );
+
+    return res.data;
+  },
+
+  createGuest: async () => {
+    const res = await httpClient.post<Guest>(`/api/auth/guestCreate`, {});
+  },
+
+  getUserSummary: async (): Promise<UserSummaryStatsResponse> => {
+    const res = await httpClient.get<UserSummaryStatsResponse>(
+      "/api/manage_users/stats/user-summary",
       {
         headers: { useAuth: true },
       }
