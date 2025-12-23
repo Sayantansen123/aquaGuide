@@ -1,102 +1,179 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Target, Heart, Award } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Fish,
+  Waves,
+  Stethoscope,
+  Carrot,
+  BookOpen,
+  Users,
+} from "lucide-react";
+import alexChen from "@/assets/alexchen.avif";
+import maria from "@/assets/MariaGarcia.avif"
+import { useNavigate } from "react-router-dom";
 
 const About = () => {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    const accessToken = localStorage.getItem("accessToken");
+    const refreshToken = localStorage.getItem("refreshToken");
+
+    if (accessToken || refreshToken) {
+      navigate("/");
+    } else {
+      navigate("/register");
+    }
+  };
   return (
     <div className="container mx-auto px-4 py-12">
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-8 md:mb-12">
-          <h1 className="text-3xl sm:text-4xl font-bold mb-4">About Aqua Guide</h1>
-          <p className="text-lg sm:text-xl text-muted-foreground">
-            Your trusted companion in the world of aquatic excellence
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold mb-4">
+            Everything You Need to Succeed
+          </h1>
+          <div className="w-24 h-1 bg-primary mx-auto mb-6" />
+          <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+            The Aqua Guide provides clear, practical resources to help you
+            confidently care for your aquarium, whether you are just starting
+            out or refining advanced setups.
           </p>
         </div>
 
-        <div className="prose prose-lg max-w-none mb-12">
-          <p className="text-muted-foreground text-center mb-8">
-            Aqua Guide was created by passionate aquarists for aquarists. We believe that fishkeeping 
-            is both an art and a science, and our mission is to make this incredible hobby accessible 
-            to everyone, from complete beginners to experienced enthusiasts.
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <Card>
+            <CardContent className="p-6 text-center">
+              <Fish className="h-10 w-10 text-primary mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-2">
+                Species Spotlights
+              </h3>
+              <p className="text-muted-foreground">
+                Confidently choose the right fish with our guides on species’
+                needs, temperament, and compatibility.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6 text-center">
+              <Waves className="h-10 w-10 text-primary mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-2">
+                Tank Setup & Water
+              </h3>
+              <p className="text-muted-foreground">
+                Master the nitrogen cycle and maintain ideal water parameters
+                with our step-by-step instructions.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6 text-center">
+              <Stethoscope className="h-10 w-10 text-primary mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-2">
+                Disease & Treatment
+              </h3>
+              <p className="text-muted-foreground">
+                Learn to identify, prevent, and effectively treat common fish
+                diseases to keep your aquatic friends healthy.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6 text-center">
+              <Carrot className="h-10 w-10 text-primary mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-2">
+                Nutrition Guidelines
+              </h3>
+              <p className="text-muted-foreground">
+                Discover the best diets and feeding schedules to support vibrant
+                and healthy fish.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6 text-center">
+              <BookOpen className="h-10 w-10 text-primary mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-2">
+                Troubleshooting
+              </h3>
+              <p className="text-muted-foreground">
+                Solve common problems like algae outbreaks, cloudy water, and
+                equipment issues with proven solutions.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6 text-center">
+              <Users className="h-10 w-10 text-primary mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-2">
+                Community & Support
+              </h3>
+              <p className="text-muted-foreground">
+                Connect with fellow fish keepers to share experiences, ask
+                questions, and learn together.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Meet Our Aquarists */}
+        <div className="text-center mt-20 mb-12">
+          <h2 className="text-3xl font-bold mb-3">Meet Our Aquarists</h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            The Aqua Guide is powered by a team of lifelong hobbyists who have
+            turned their passion into a mission to help others.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-          <Card>
-            <CardHeader>
-              <Target className="h-10 w-10 text-primary mb-3" />
-              <CardTitle>Our Mission</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                To provide comprehensive, reliable, and accessible resources that empower aquarists 
-                to create thriving aquatic ecosystems and build a supportive community.
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-4xl mx-auto mb-20">
+          <Card className="overflow-hidden">
+            <img
+            src={alexChen}
+            alt="Alex Chen"
+            className="w-full h-80 object-cover"
+          />
+            <CardContent className="p-6 text-center">
+              <h3 className="text-lg font-semibold">Alex Chen</h3>
+              <p className="text-sm text-muted-foreground">
+                Founder & Freshwater Expert
               </p>
             </CardContent>
           </Card>
-
-          <Card>
-            <CardHeader>
-              <Heart className="h-10 w-10 text-primary mb-3" />
-              <CardTitle>Our Values</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                We prioritize animal welfare, environmental responsibility, and knowledge sharing. 
-                Every guide and recommendation is backed by science and real-world experience.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <Users className="h-10 w-10 text-primary mb-3" />
-              <CardTitle>Our Community</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                With thousands of active members worldwide, our community is a welcoming space 
-                for questions, advice, and celebrating the beauty of aquatic life together.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <Award className="h-10 w-10 text-primary mb-3" />
-              <CardTitle>Expert Contributors</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Our content is created by experienced aquarists, aquatic biologists, and industry 
-                professionals who are dedicated to sharing their expertise.
+          <Card className="overflow-hidden">
+            <img
+              src={maria}
+              alt="Maria Garcia"
+              className="w-full h-80 object-cover"
+            />
+            <CardContent className="p-6 text-center">
+              <h3 className="text-lg font-semibold">Maria Garcia</h3>
+              <p className="text-sm text-muted-foreground">
+                Saltwater & Coral Specialist
               </p>
             </CardContent>
           </Card>
         </div>
 
-        <Card className="ocean-gradient text-white">
-          <CardContent className="p-8 text-center">
-            <h2 className="text-2xl font-bold mb-4">Join Our Growing Community</h2>
-            <p className="text-white/90 mb-6">
-              Be part of a thriving community of fish enthusiasts dedicated to creating beautiful 
-              and healthy aquatic environments.
-            </p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6 text-center">
-              <div>
-                <div className="text-2xl sm:text-3xl font-bold mb-1">10K+</div>
-                <div className="text-xs sm:text-sm text-white/80">Active Members</div>
-              </div>
-              <div>
-                <div className="text-2xl sm:text-3xl font-bold mb-1">500+</div>
-                <div className="text-xs sm:text-sm text-white/80">Guides & Tutorials</div>
-              </div>
-              <div className="col-span-2 sm:col-span-1">
-                <div className="text-2xl sm:text-3xl font-bold mb-1">1000+</div>
-                <div className="text-xs sm:text-sm text-white/80">Species Documented</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Our Unwavering Commitment */}
+        <div className="text-center max-w-3xl mx-auto">
+          <h2 className="text-3xl font-bold mb-4">
+            Our Unwavering Commitment
+          </h2>
+          <p className="text-muted-foreground mb-8">
+            At The Aqua Guide, we are committed to providing accurate,
+            up-to-date, and practical advice that makes fish keeping enjoyable
+            and successful. Our content is crafted by experienced aquarists and
+            reviewed for accuracy, ensuring you get the best guidance available.
+          </p>
+
+          <button className="px-6 py-3 rounded-lg bg-primary text-white font-semibold hover:opacity-90 transition"
+          onClick={handleClick}>
+            Start Your Journey →
+          </button>
+        </div>
       </div>
     </div>
   );

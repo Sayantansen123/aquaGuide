@@ -22,6 +22,7 @@ import type {SpeciesItem} from "@/api/apiTypes";
 import {toast} from "@/components/ui/use-toast";
 import EditSpeciesModal from "./EditSpeciesModal";
 import {useDebounce} from "@/hooks/useDebounce";
+import CircularLoader from "../ui/CircularLoader";
 
 const ManageSpecies = () => {
 	const queryClient = useQueryClient();
@@ -224,9 +225,7 @@ const ManageSpecies = () => {
 			</div>
 			{/* Loading State */}
 			{isLoading ? (
-				<div className="flex items-center justify-center py-12">
-					<Loader2 className="w-8 h-8 animate-spin text-primary" />
-				</div>
+				<CircularLoader />
 			) : (
 				<>
 					{/* Desktop Table View */}

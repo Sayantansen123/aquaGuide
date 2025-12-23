@@ -1,9 +1,9 @@
 
 import express from "express";
-import session from "express-session";
-import flash from "connect-flash";
 import dotenv from "dotenv";
 import cors from "cors";
+import { Server } from "socket.io";
+import http from "http";
 
 import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
@@ -14,11 +14,13 @@ import sequelize from "./lib/db.js"; // Sequelize connection
 
 import authRoutes from "./routes/auth.route.js"; // only auth route
 import communityRoutes from "./routes/community_forum.route.js";
+import communityChatsRoutes from "./routes/community_chat.route.js";
 import videoRoutes from "./routes/video.route.js";
 import manageUserRoutes from "./routes/admin.manageuser.route.js";
 import speciesRoutes from "./routes/species.route.js";
 import speciesPublicRoutes from "./routes/species.public.route.js";
 import textGuideRoutes from "./routes/text_guide.route.js";
+import { setupChatSocket } from "./lib/socket-handlers.js";
 
 dotenv.config();
 
@@ -31,7 +33,7 @@ app.use(cookieParser());
 // cors error fix
 app.use(
   cors({
-    origin: "http://localhost:8080",
+    origin: "*",
     credentials: true,
   })
 );
@@ -151,6 +153,7 @@ app.use("/api/manage_species", speciesRoutes);
 app.use("/api", speciesPublicRoutes);
 app.use("/api/textguides", textGuideRoutes);
 app.use("/api/community", communityRoutes);
+app.use("/api/community/chat", communityChatsRoutes);
 app.use("/uploads", express.static("uploads"));
 
 app.get("/", (req, res) => {
@@ -164,19 +167,41 @@ const PORT = process.env.PORT || 5000;
 const startServer = async () => {
   try {
     await sequelize.authenticate();
-    console.log("✅ PostgreSQL connected");
+    console.log("PostgreSQL connected");
 
     await sequelize.sync({ alter: true });
-    console.log("✅ Models synced with database");
+    console.log("Models synced");
 
-    app.listen(PORT, () => {
-      console.log(`🚀 Server running at http://localhost:${PORT}`);
-      console.log(
-        `📘 Swagger docs available at http://localhost:${PORT}/api-docs`
-      );
+    const server = http.createServer(app);
+
+    const io = new Server(server, {
+      cors: {
+        origin: "*",
+        credentials: true,
+        methods: ["GET", "POST"],
+      },
+      transports: ["websocket", "polling"],
     });
+
+    // Setup chat socket handlers
+    setupChatSocket(io);
+
+    // Default Socket.IO connection handler (for backward compatibility)
+    io.on("connection", (socket) => {
+      console.log("[Socket.IO] Default connection:", socket.id);
+
+      socket.on("disconnect", () => {
+        console.log("[Socket.IO] Default disconnect:", socket.id);
+      });
+    });
+
+    server.listen(PORT, () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+      console.log(`Socket.IO active on same port`);
+    });
+
   } catch (error) {
-    console.error("❌ Database connection failed:", error.message);
+    console.error("Startup failed:", error.message);
     process.exit(1);
   }
 };

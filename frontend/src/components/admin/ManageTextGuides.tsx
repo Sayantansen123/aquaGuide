@@ -22,6 +22,7 @@ import { textApi } from "@/api/modules/text";
 import { toast } from "sonner";
 import { TextGuide } from "@/api/apiTypes";
 import { useNavigate } from "react-router-dom";
+import CircularLoader from "../ui/CircularLoader";
 
 interface TextGuides {
   id: string;
@@ -155,7 +156,7 @@ const ManageTextGuides = ({ placeholder }) => {
       </Badge>
     );
   };
-
+  if (isError) return <div className="text-red-600">Failed to load guides. Please try again later.</div>;
   return (
     <div className="space-y-6">
       <h1 className="text-2xl md:text-3xl font-bold text-foreground">
@@ -234,9 +235,7 @@ const ManageTextGuides = ({ placeholder }) => {
           <CardTitle className="text-lg">Submitted Guides</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          {isLoading ? (
-            <div className="p-4 pl-8 pb-4 text-lg">Loading.....</div>
-          ) : (
+          {isLoading ? <CircularLoader /> : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
