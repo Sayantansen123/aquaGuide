@@ -336,6 +336,8 @@ export interface CommunityForum {
   dislike: string[];
   is_private: boolean;
   status: "approved" | "rejected" | "pending";
+  Total_Comments: string | null;
+  Creator_Username: string | null;
   rejection_justification: string | null;
   rejection_requested_by: string | null;
   rejection_status: "pending" | "approved" | "rejected";

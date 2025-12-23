@@ -9,12 +9,33 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Bug, HelpCircle, Lightbulb, Mail, MessageSquare, Phone, Users } from "lucide-react";
+import { useState } from "react";
+
+const SUBJECTS = {
+  SUGGEST_GUIDE: "Suggest a Guide",
+  REPORT_BUG: "Report a Bug",
+  PARTNERSHIPS: "Partnerships",
+  OTHER: "Other Questions",
+}
+
 
 const Contact = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
   };
+
+  const [subject, setSubject] = useState<string>("")
+  const [customSubject, setCustomSubject] = useState<string>("")
+
+  const finalSubject = customSubject || subject;
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -44,40 +65,40 @@ const Contact = () => {
         </div> 
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-      <Card>
+      <Card onClick={() => setSubject(SUBJECTS.SUGGEST_GUIDE)} className={`cursor-pointer hover:shadow-lg transition-all hover:-translate-y-1 ${subject === SUBJECTS.SUGGEST_GUIDE ? 'border-2 border-primary' : ''}`}>
         <CardContent className="p-6 text-center">
           <Lightbulb className="h-10 w-10 text-primary mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Suggest a Guide</h3>
+            <h3 className="text-lg font-semibold mb-2">{SUBJECTS.SUGGEST_GUIDE}</h3>
               <p className="text-muted-foreground text-sm">
                  Have an idea for a video or an article? We’d love to hear it.
               </p>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card onClick={() => setSubject(SUBJECTS.REPORT_BUG)} className={`cursor-pointer hover:shadow-lg transition-all hover:-translate-y-1 ${subject === SUBJECTS.REPORT_BUG ? 'border-2 border-primary' : ''}`}>
         <CardContent className="p-6 text-center">
           <Bug className="h-10 w-10 text-destructive mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Spotted a Glitch?</h3>
+            <h3 className="text-lg font-semibold mb-2">{SUBJECTS.REPORT_BUG}</h3>
               <p className="text-muted-foreground text-sm">
               Found a hitchhiker snail (a bug) on the site? Let us know!
               </p>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card onClick={() => setSubject(SUBJECTS.PARTNERSHIPS)} className={`cursor-pointer hover:shadow-lg transition-all hover:-translate-y-1 ${subject === SUBJECTS.PARTNERSHIPS ? 'border-2 border-primary' : ''}`}>
         <CardContent className="p-6 text-center">
           <Users className="h-10 w-10 text-emerald-500 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Partnerships</h3>
+            <h3 className="text-lg font-semibold mb-2">{SUBJECTS.PARTNERSHIPS}</h3>
               <p className="text-muted-foreground text-sm">
                 Want to swim with our school? Let’s talk collaboration.
               </p>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card onClick={() => setSubject(SUBJECTS.OTHER)} className={`cursor-pointer hover:shadow-lg transition-all hover:-translate-y-1 ${subject === SUBJECTS.OTHER ? 'border-2 border-primary' : ''}`}>
         <CardContent className="p-6 text-center">
           <HelpCircle className="h-10 w-10 text-cyan-500 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Other Questions</h3>
+            <h3 className="text-lg font-semibold mb-2">{SUBJECTS.OTHER}</h3>
               <p className="text-muted-foreground text-sm">
                 For anything else that doesn’t fit the categories above.
               </p>
@@ -115,11 +136,33 @@ const Contact = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="subject">Subject</Label>
-                <Input
-                  id="subject"
-                  placeholder="What's this about?"
-                  required
-                />
+                <Select value={subject} onValueChange={setSubject}>
+                  <SelectTrigger id="subject">
+                    <SelectValue placeholder="Select a subject" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={SUBJECTS.SUGGEST_GUIDE}>
+                      {SUBJECTS.SUGGEST_GUIDE}
+                    </SelectItem>
+                    <SelectItem value={SUBJECTS.REPORT_BUG}>
+                      {SUBJECTS.REPORT_BUG}
+                    </SelectItem>
+                    <SelectItem value={SUBJECTS.PARTNERSHIPS}>
+                      {SUBJECTS.PARTNERSHIPS}
+                    </SelectItem>
+                    <SelectItem value={SUBJECTS.OTHER}>
+                      {SUBJECTS.OTHER}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                {subject === SUBJECTS.OTHER && (
+                  <Input
+                    placeholder="Enter your custom subject"
+                    value={customSubject}
+                    onChange={(e) => setCustomSubject(e.target.value)}
+                    className="mt-2"
+                  />
+                )}
               </div>
 
               <div className="space-y-2">

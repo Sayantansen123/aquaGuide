@@ -13,7 +13,6 @@ export const getSpeciesDictionary = async (req, res) => {
     const water_type = req.query.water_type || "";
     const care_level = req.query.care_level || "";
     const category = req.query.category || "";
-    const status = req.query.status || "published";
 
     const where = { status: "published" };
 
@@ -25,6 +24,10 @@ export const getSpeciesDictionary = async (req, res) => {
         { family: { [Op.iLike]: `%${search}%` } },
         { origin: { [Op.iLike]: `%${search}%` } },
         { description: { [Op.iLike]: `%${search}%` } },
+        { water_type: { [Op.iLike]: `%${search}%` } },
+        { care_level: { [Op.iLike]: `%${search}%` } },
+        { diet_type: { [Op.iLike]: `%${search}%` } },
+        { temperament: { [Op.iLike]: `%${search}%` } },
         { diet_info: { [Op.iLike]: `%${search}%` } },
         { compatibility_notes: { [Op.iLike]: `%${search}%` } },
         { breeding_notes: { [Op.iLike]: `%${search}%` } },
@@ -34,7 +37,6 @@ export const getSpeciesDictionary = async (req, res) => {
     // ⚙️ Filters
     if (water_type) where.water_type = water_type;
     if (care_level) where.care_level = care_level;
-    if(status) where.status = status;
     if (category === "compatibility") {
       where.compatibility_notes = { [Op.not]: null };
     }

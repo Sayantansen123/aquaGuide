@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { useUserSummary } from "@/hooks/useUserSummary";
 import { UserSummaryStatsResponse } from "@/api/apiTypes";
+import CircularLoader from "../ui/CircularLoader";
 
 type DashboardTab = "accounts" | "server" | "content" | "database";
 
@@ -124,7 +125,7 @@ const AccountsTab = (props: {
   return (
     <div>
       {props.isLoading ? (
-        <div className="text-lg p-4">Loading.....</div>
+        <CircularLoader />
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
           {accountStats.map((stat) => (

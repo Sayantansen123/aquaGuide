@@ -166,7 +166,7 @@ export const getActiveVideoGuides = async (req, res) => {
     const limit = 12;
     const offset = (page - 1) * limit;
 
-    const { rows: video, count: total } = await VideoGuide.findAndCountAll({
+    const { rows: videos, count: total } = await VideoGuide.findAndCountAll({
       where: { isActive: true, status: "approved" },
       order: [["createdAt", "DESC"]],
       limit,
@@ -179,7 +179,7 @@ export const getActiveVideoGuides = async (req, res) => {
       currentPage: page,
       totalPages,
       totalItems: total,
-      video,
+      videos,
     });
   } catch (error) {
     console.error("Error fetching active video guides:", error);
