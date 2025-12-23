@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { MessageSquare, ThumbsUp, Eye } from "lucide-react";
 import { useCommunityForumPublic } from "@/hooks/useCommunityForumPublic";
 import { useState } from "react";
+import CircularLoader from "@/components/ui/CircularLoader";
 
 
 
@@ -24,7 +25,7 @@ const CommunityForum = () => {
     setPageNumber((prev) => Math.max(prev - 1, 1));
   };
 
-  if (isLoading) return <div>Loading posts...</div>;
+  if (isLoading) return <CircularLoader />;
   if (isError) return <div className="text-red-600">Failed to load posts. Please try again later.</div>;
 
   return (

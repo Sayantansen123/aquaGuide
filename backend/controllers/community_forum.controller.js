@@ -91,7 +91,7 @@ export const get_approved_community_forum = async (req, res) => {
                         "Total_Comments"
                     ],
                     [
-                        sequelize.col("User.name"),
+                        sequelize.col("User.userid"),
                         "Creator_Username" 
                     ]
                 ]

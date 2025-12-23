@@ -25,6 +25,7 @@ import { useUsers } from "@/hooks/useUsers";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { authApi } from "@/api/modules/auth";
 import { toast } from "sonner";
+import CircularLoader from "../ui/CircularLoader";
 
 const ManageUsers = () => {
   const userid = localStorage.getItem("userid");
@@ -90,7 +91,7 @@ const ManageUsers = () => {
     },
   });
 
-  if (isLoading) return <p>Loading users...</p>;
+  if (isLoading) return <CircularLoader />;
   if (isError) return <p>Failed to load users</p>;
 
   const getRoleBadge = (role: string) => {

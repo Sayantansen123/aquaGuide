@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import CircularLoader from "@/components/ui/CircularLoader";
 import { useTextGuidePublic } from "@/hooks/useTextGuidePublic";
 import { BookOpen, Clock } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -77,12 +78,18 @@ const guides = [
 const TextGuides = () => {
   const [page, setPage] = useState(1);
   const { data, isLoading, isError } = useTextGuidePublic(page);
+
   const textGuidesArray: TextGuide[] = data?.data || [];
+
+
   const navigate = useNavigate();
 
   const handleTextNavigate = (id: string) => {
     navigate(`/view/text/${id}`);
   };
+  if (isLoading) return <CircularLoader />;
+  if (isError)
+    return (<div className="text-red-600">Failed to load guides. Please try again later.</div>);
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="mb-6 md:mb-8">
