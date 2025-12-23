@@ -2,75 +2,79 @@ import { CommunityApproveRejectDeleteResponse, CommunityForumDetailResponse, Com
 import httpClient from "../axiosSetup";
 
 
-export const Community_forum_api = {
-    create: (data: CommunityForumPayload) =>
-    httpClient.post<CommunityForumDetailResponse>("/api/community/add_community_forum", data, {
-      headers: { useAuth: true },
-    }),
-}
+const BACKEND_URL = import.meta.env.VITE_BASE_URL_DEV
 
-export const get_all_community_forums = {
-    getAllCommunityForums: () =>
-        httpClient.get<getAllCommunityForum>("/api/community/get_all_community_forum",{
+export const community_forum_api = {
+    create: async(data: CommunityForumPayload) =>{
+        const res = await httpClient.post<CommunityForumDetailResponse>(`${BACKEND_URL}/api/community/add_community_forum`, data, {
+            headers: { useAuth: true },
+        });
+        return res.data;
+    },
+
+    getAllCommunityForums: async (page: number) => {
+        const res = await httpClient.get<getAllCommunityForum>(`${BACKEND_URL}/api/community/get_all_community_forum?page=${page}`, {
             headers: {useAuth: true},
-        }),
-}
+        });
+        return res.data;
+    },
 
-export const get_all_approved_community_forums = {
-    getAllApprovedCommunityForums: ()=>
-        httpClient.get<getAllCommunityForum>("/api/community/get_all_approved_community_forum")
-}
+    getAllApprovedCommunityForums: async (page: number): Promise<getAllCommunityForum> => {
+        const res = await httpClient.get<getAllCommunityForum>(`${BACKEND_URL}/api/community/get_all_approved_community_forum?page=${page}`);
+        return res.data;
+    },
 
-export const get_community_forum_by_id = {
-    getCommunityforumByid: (id: string)=>
-        httpClient.get<CommunityForumDetailResponse>(`/api/community/get_community_forum_by_id/${id}`)
-}
+    getCommunityforumByid: async (id: string)=>{
+        const res = await httpClient.get<CommunityForumDetailResponse>(`${BACKEND_URL}/api/community/get_community_forum_by_id/${id}`);
+        return res.data;
+    },
 
-export const approve_community = {
-    approveCommunity: (forum_id: string)=>
-        httpClient.put<CommunityApproveRejectDeleteResponse>(`/api/community/approve_community?forum_id=${forum_id}`,{
+    approveCommunity: async (forum_id: string)=>{
+        const res = await httpClient.put<CommunityApproveRejectDeleteResponse>(`${BACKEND_URL}/api/community/approve_community?forum_id=${forum_id}`,{
             headers: {useAuth: true},
-        })
-}
+        });
+        return res.data;
+    },
 
-export const reject_community = {
-    rejectCommunity: (forum_id: string)=>
-         httpClient.put<CommunityApproveRejectDeleteResponse>(`/api/community/reject_community?forum_id=${forum_id}`,{
+    rejectCommunity: async (forum_id: string)=>{
+        const res = await httpClient.put<CommunityApproveRejectDeleteResponse>(`${BACKEND_URL}/api/community/reject_community?forum_id=${forum_id}`,{
             headers: {useAuth: true},
-        })
-}
+        });
+        return res.data;
+    },
 
-export const approve_rejection_request = {
-    approveRejectionRequest: (forum_id: string)=>
-        httpClient.put<CommunityApproveRejectDeleteResponse>(`/api/community/approve_rejection_request?forum_id=${forum_id}`,{
+    approveRejectionRequest: async (forum_id: string)=>{
+        const res = await httpClient.put<CommunityApproveRejectDeleteResponse>(`${BACKEND_URL}/api/community/approve_rejection_request?forum_id=${forum_id}`,{
             headers: {useAuth: true},
-        })
-}
+        });
+        return res.data;
+    },
 
-export const delete_community_forum = {
-    deleteCommunityForum: (forum_id: string)=>
-        httpClient.delete<CommunityApproveRejectDeleteResponse>(`/api/community/delete_community_forum?forum_id=${forum_id}`,{
+    deleteCommunityForum: async (forum_id: string)=>{
+        const res = await httpClient.delete<CommunityApproveRejectDeleteResponse>(`${BACKEND_URL}/api/community/delete_community_forum?forum_id=${forum_id}`,{
             headers: {useAuth: true},
-        })
-}
+        });
+        return res.data;
+    },
 
-export const delete_comment = {
-    deleteComment: (comment_id: string)=>
-        httpClient.delete<CommunityApproveRejectDeleteResponse>(`/api/community/comment?comment_id=${comment_id}`,{
+    deleteComment: async (comment_id: string)=>{
+        const res = await httpClient.delete<CommunityApproveRejectDeleteResponse>(`${BACKEND_URL}/api/community/comment?comment_id=${comment_id}`, {
             headers: {useAuth: true},
-        })
-}
+        });
+        return res.data;
+    },
 
-export const like_comment = {
-    likeComment: (data: LikeDislikePayload)=>
-        httpClient.put<LikeDislikeCommunity>(`/api/community/like`,data, {
+    likeComment: async (data: LikeDislikePayload)=>{
+        const res = await httpClient.put<LikeDislikeCommunity>(`${BACKEND_URL}/api/community/like`,data, {
             headers: {useAuth: true},
-        })
-}
+        });
+        return res.data;
+    },
 
-export const dislike_comment = {
-    likeComment: (data: LikeDislikePayload)=>
-        httpClient.put<LikeDislikeCommunity>(`/api/community/dislike`,data, {
+    dislikeComment: async (data: LikeDislikePayload)=>{
+        const res = await httpClient.put<LikeDislikeCommunity>(`${BACKEND_URL}/api/community/dislike`,data, {
             headers: {useAuth: true},
-        })
+        });
+        return res.data;
+    },
 }
