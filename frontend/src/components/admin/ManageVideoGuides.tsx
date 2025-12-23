@@ -25,6 +25,7 @@ import { Eye, Pencil, Check, X, Trash2, Play, Youtube } from "lucide-react";
 import { VideoArray, VideoPayload } from "@/api/apiTypes";
 import { toast } from "sonner";
 import { videoApi } from "@/api/modules/video";
+import CircularLoader from "../ui/CircularLoader";
 
 interface VideoGuide {
   id: string;
@@ -84,6 +85,8 @@ const ManageVideoGuides = () => {
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
   const [callApi, setCallApi] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isError, setIsError] = useState<boolean>(false);
 
   const extractVideoId = (url: string) => {
     const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/);
@@ -208,6 +211,10 @@ const ManageVideoGuides = () => {
       </Badge>
     );
   };
+  if (isError) return <div className="text-red-600">Failed to load guides. Please try again later.</div>;
+  if (isLoading) {
+    return <CircularLoader />;
+  }
 
   return (
     <div className="space-y-6">

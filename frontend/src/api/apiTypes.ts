@@ -286,3 +286,112 @@ export interface UserSummaryStatsResponse {
     guest_users: number;
   };
 }
+
+export interface TextGuidePayload {
+  title: string;
+  content: string;
+}
+
+export interface TextGuide {
+  id: string;
+  title: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+  status: "approved" | "pending" | "rejected"; // you can adjust based on your possible statuses
+  author: author;
+  rejection_justification?: string | null;
+  rejection_requested_by?: string | null;
+  rejection_status?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface author {
+  id: string;
+  userid: string;
+  email: string;
+  role: "admin" | "user" | "support";
+}
+
+export interface Pagination {
+  total_items: number;
+  current_page: number;
+  totalPages: number;
+  pageSize: number;
+}
+
+export interface GetAllTextGuidesResponse {
+  data: TextGuide[]; // array of guides
+  pagination: Pagination; // pagination info
+}
+
+
+export interface CommunityForum {
+  id: string;
+  title: string;
+  content: string;
+  creator_id: string;
+  likes: string[];
+  dislike: string[];
+  is_private: boolean;
+  status: "approved" | "rejected" | "pending";
+  Total_Comments: string | null;
+  Creator_Username: string | null;
+  rejection_justification: string | null;
+  rejection_requested_by: string | null;
+  rejection_status: "pending" | "approved" | "rejected";
+  image_url: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PaginationItem {
+  id: string;
+  count: number;
+}
+
+export interface PaginationMeta {
+  total_items: PaginationItem[];
+  total_pages: number | null;
+  page_size: number;
+}
+export interface getAllCommunityForum{
+  data: CommunityForum[];
+  pagination: PaginationMeta;
+}
+
+export interface Comment {
+  id: string;
+  content: string;
+  user_id: string;
+  forum_id: string;
+  UserId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CommunityForumDetailResponse {
+  message: string;
+  data: CommunityForum;
+  comments: Comment[];
+  total_comments: number;
+}
+
+export interface CommunityApproveRejectDeleteResponse{
+  message: string
+}
+
+export interface LikeDislikeCommunity{
+  data: CommunityForum,
+  message: string
+}
+
+export interface CommunityForumPayload{
+  title: string,
+  content: string
+}
+
+export interface LikeDislikePayload{
+  forum_id: string
+}

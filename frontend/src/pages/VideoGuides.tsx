@@ -5,6 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import CircularLoader from "@/components/ui/CircularLoader";
 import { useVideoUsers } from "@/hooks/useVideoUsers";
 import { Play } from "lucide-react";
 import { useState } from "react";
@@ -82,7 +83,7 @@ const VideoGuides = () => {
         </p>
       </div>
       {isLoading ? (
-        <div>Loading......</div>
+        <CircularLoader />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {videoArray.map((video) => (

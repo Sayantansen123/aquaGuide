@@ -25,7 +25,7 @@ import { toast } from "sonner";
 import { UserDetailsResponse } from "@/api/apiTypes";
 import { authApi } from "@/api/modules/auth";
 import UploadPictureModal from "@/components/UploadPictureModal";
-import { Loader } from "@/components/ui/loader";
+import CircularLoader from "@/components/ui/CircularLoader";
 
 const Profile = () => {
   const { name, email } = useSelector((state: RootState) => state.user);
@@ -105,7 +105,7 @@ const Profile = () => {
 
   return (
     <>
-      {loading && <Loader size="lg" />}
+      {loading && <CircularLoader/>}
       <div className="container mx-auto px-4 py-8 max-w-5xl">
         <h1 className="text-3xl font-bold ocean-gradient bg-clip-text text-transparent mb-8">
           My Profile

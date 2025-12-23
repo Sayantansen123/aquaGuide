@@ -74,7 +74,14 @@ export const get_approved_community_forum = async (req, res) => {
                     as: "Comments",    // must match association alias
                     attributes: [],
                     required: false
+                },
+                {
+                    model: User,
+                    as: "User",
+                    attributes: [],
+                    required: true
                 }
+
             ],
 
             attributes: {
@@ -82,11 +89,15 @@ export const get_approved_community_forum = async (req, res) => {
                     [
                         sequelize.fn("COUNT", sequelize.col("Comments.id")),
                         "Total_Comments"
+                    ],
+                    [
+                        sequelize.col("User.userid"),
+                        "Creator_Username" 
                     ]
                 ]
             },
 
-            group: ["CommunityForum.id"],
+            group: ["CommunityForum.id", "User.name", "User.id"],
             subQuery: false,   // ensure the JOIN is included in the outer query
             offset,
             limit,
@@ -96,8 +107,8 @@ export const get_approved_community_forum = async (req, res) => {
         res.status(200).json({
             data: rows,
             pagination: {
-                total_items: count,
-                total_pages: Math.ceil(count / limit),
+                total_items: count.length,
+                total_pages: Math.ceil(count.length / limit),
                 page_size: limit
             }
         });

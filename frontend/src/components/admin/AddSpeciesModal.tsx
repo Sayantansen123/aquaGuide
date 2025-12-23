@@ -11,6 +11,7 @@ import {Separator} from "@/components/ui/separator";
 import {SpeciesFormData} from "@/api/apiTypes";
 import {speciesApi} from "@/api/modules/species";
 import {Link as LinkIcon, X} from "lucide-react";
+import CircularLoader from "../ui/CircularLoader";
 
 interface AddSpeciesModalProps {
 	isOpen: boolean;
@@ -130,6 +131,13 @@ const AddSpeciesModal = ({isOpen, onClose}: AddSpeciesModalProps) => {
 			setIsLoading(false);
 		}
 	};
+
+	if(isLoading) {
+		return (<CircularLoader />);
+	}
+	if (error) {
+		return <div className="text-red-600">Error: {error}</div>
+	};	
 
 	return (
 		<Dialog open={isOpen} onOpenChange={onClose}>

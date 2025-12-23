@@ -14,7 +14,7 @@ import {
   deleteUser,
   searchUser,
 } from "../controllers/manageUsers.controller.js";
-import { getUserSummaryStats } from "../controllers/usersummary.controller.js";
+import { getUserSummaryStats } from "../controllers/userSummary.controller.js";
 
 const router = Router();
 
@@ -159,9 +159,9 @@ router.post("/user/:userId/toggle_support", adminRoute, toggleSupport);
  */
 router.post("/user/:userId/delete", adminRoute, deleteUser);
 
-router.get("/stats/user-summary", supportOrAdminRoute, getUserSummaryStats);
-
 // GET /api/manage_users/search?userName=
 router.get("/search", supportOrAdminRoute, searchUser);
+
+router.get("/stats/user-summary", supportOrAdminRoute, getUserSummaryStats);
 
 export default router;

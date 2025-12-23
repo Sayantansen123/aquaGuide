@@ -19,7 +19,8 @@ export const get_all_guides = async (req, res) => {
           model: User,
           as: "authorUser",
           attributes: ["id", "userid", "email", "role"],
-        },]
+        },
+      ],
     });
 
     res.status(200).json({
@@ -47,31 +48,31 @@ export const get_text_guide = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = 20;
-    const offset = (page - 1) * limit
+    const offset = (page - 1) * limit;
     const { count, rows } = await TextModel.findAndCountAll({
       where: { status: "approved" },
       offset,
       limit,
-      order: [['created_at', 'DESC']],
+      order: [["created_at", "DESC"]],
       include: [
         {
           model: User,
           as: "authorUser",
           attributes: ["id", "userid", "email", "role"],
-        },]
-    })
+        },
+      ],
+    });
     res.status(200).json({
       data: rows,
       pagination: {
         total_items: count,
         current_page: page,
         totalPages: Math.ceil(count / limit),
-        pageSize: limit
-      }
-    })
-  }
-  catch (err) {
-    console.error(err.message)
+        pageSize: limit,
+      },
+    });
+  } catch (err) {
+    console.error(err.message);
     res.status(500).json({ message: "Error fetching all text guides" });
   }
 };
@@ -144,6 +145,8 @@ export const post_text_guide = async (req, res) => {
  * PUT /approve_or_reject/:id
  * body: { status: "approved" | "rejected" }
  */
+
+//sayantan
 export const approve_or_reject_text = async (req, res) => {
   try {
     const { id } = req.params;
@@ -168,9 +171,7 @@ export const approve_or_reject_text = async (req, res) => {
 
     await text_guide.save();
 
-    res
-      .status(200)
-      .json({ message: "Text Guide status updated successfully" });
+    res.status(200).json({ message: "Text Guide status updated successfully" });
   } catch (err) {
     console.error(err.message);
     res
@@ -181,7 +182,7 @@ export const approve_or_reject_text = async (req, res) => {
 /**
  * SUPPORT APPROVE / REQUEST REJECTION
  * PUT /approve_or_reject_text_guide/:id
- * body: 
+ * body:
  *   - { status: "approved" }
  *   - { status: "rejected", rejection_justification: "..." }
  */
@@ -286,7 +287,6 @@ export const approve_or_reject_rejection_request = async (req, res) => {
   }
 };
 
-
 /**
  * UPDATE (EDIT) SINGLE GUIDE
  * PUT /text_guide/:id
@@ -326,7 +326,6 @@ export const update_text_guide = async (req, res) => {
     if (req.user.role !== "admin") {
       text_guide.status = "pending";
     } else {
-
       text_guide.status = "approved";
     }
     await text_guide.save();
@@ -347,6 +346,8 @@ export const update_text_guide = async (req, res) => {
  * DELETE /text_guide/:id
  * - Admin only (route should already have adminRoute)
  */
+
+//sayantan
 export const delete_text_guide = async (req, res) => {
   try {
     const { id } = req.params;
@@ -384,9 +385,7 @@ export const bulk_action_text_guides = async (req, res) => {
     const { guide_ids, action } = req.body;
 
     if (!Array.isArray(guide_ids) || guide_ids.length === 0) {
-      return res
-        .status(400)
-        .json({ message: "No text guides were selected" });
+      return res.status(400).json({ message: "No text guides were selected" });
     }
 
     if (!["approve", "reject", "delete"].includes(action)) {

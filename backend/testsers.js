@@ -1,19 +1,19 @@
-import sequelize from "./lib/db.js";
-import SpeciesDictionary from "./models/speciesDictionary.model.js";
+import { io } from "socket.io-client";
 
-const run = async () => {
-  try {
-    console.log("Running query...");
-    const data = await SpeciesDictionary.findAll({
-      where: { status: "published" },
-      limit: 1,
-    });
-    console.log("✅ Query success:", data.length);
-  } catch (err) {
-    console.error("❌ Query failed:", err);
-  } finally {
-    await sequelize.close();
-  }
-};
+const socket = io("http://localhost:5000");
 
-run();
+socket.on("connect", () => {
+  console.log("connected:", socket.id);
+  socket.emit("join-room", "test-room");
+});
+
+socket.on("receive-message", (data) => {
+  console.log("received:", data);
+});
+
+setTimeout(() => {
+  socket.emit("send-message", {
+    roomId: "test-room",
+    message: "hello"
+  });
+}, 3000);
