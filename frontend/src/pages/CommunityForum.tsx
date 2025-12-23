@@ -48,7 +48,7 @@ const CommunityForum = () => {
                       {post.title}
                     </CardTitle>
                     <CardDescription className="mt-2">
-                      Posted by {post.author}
+                      Posted by {post.creator_id}
                     </CardDescription>
                   </div>
                 </div>
