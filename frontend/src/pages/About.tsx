@@ -9,8 +9,21 @@ import {
 } from "lucide-react";
 import alexChen from "@/assets/alexchen.avif";
 import maria from "@/assets/MariaGarcia.avif"
+import { useNavigate } from "react-router-dom";
 
 const About = () => {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    const accessToken = localStorage.getItem("accessToken");
+    const refreshToken = localStorage.getItem("refreshToken");
+
+    if (accessToken || refreshToken) {
+      navigate("/");
+    } else {
+      navigate("/register");
+    }
+  };
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="max-w-6xl mx-auto">
@@ -156,7 +169,8 @@ const About = () => {
             reviewed for accuracy, ensuring you get the best guidance available.
           </p>
 
-          <button className="px-6 py-3 rounded-lg bg-primary text-white font-semibold hover:opacity-90 transition">
+          <button className="px-6 py-3 rounded-lg bg-primary text-white font-semibold hover:opacity-90 transition"
+          onClick={handleClick}>
             Start Your Journey →
           </button>
         </div>
