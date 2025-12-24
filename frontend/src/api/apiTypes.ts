@@ -395,3 +395,7 @@ export interface CommunityForumPayload{
 export interface LikeDislikePayload{
   forum_id: string
 }
+export interface GetSpeciesDetailResponse {
+  species: SpeciesItem;
+  related_species: SpeciesItem[];
+}

@@ -1,10 +1,7 @@
-import type { SpeciesFormData, AddSpeciesResponse, GetSpeciesManagementResponse, SearchSpeciesParams, GetSearchResponse } from '@/api/apiTypes';
+import type { SpeciesFormData, AddSpeciesResponse, GetSpeciesManagementResponse, SearchSpeciesParams, GetSearchResponse, SpeciesItem, GetSpeciesDetailResponse } from '@/api/apiTypes';
 
 import httpClient from '@/api/axiosSetup';
 
-
-import { add } from 'date-fns';
-import { spec } from 'node:test/reporters';
 
 export const speciesApi = {
     addSpecies: (data: SpeciesFormData) =>
@@ -15,6 +12,11 @@ export const speciesApi = {
     getSpeciesManagement: (page: number = 1) =>
         httpClient.get<GetSpeciesManagementResponse>(`/api/manage_species/species-management?page=${page}`, {
             headers: { useAuth: true },
+        }),
+
+    getSpeciesById: (speciesId: string) =>
+        httpClient.get<GetSpeciesDetailResponse>(`/api/species/${speciesId}`, { 
+            headers: { useAuth: false },
         }),
 
     updateSpecies: (speciesId: string, data: SpeciesFormData) =>
