@@ -6,6 +6,7 @@ import {Badge} from "@/components/ui/badge";
 import {Separator} from "@/components/ui/separator";
 import {ArrowLeft, Fish, Thermometer, Droplets, Ruler, MapPin, Heart, Utensils, Users, Eye, Leaf, Loader2} from "lucide-react";
 import {speciesApi} from "@/api/modules/species";
+import RangeBar from "@/components/RangeBar";
 
 const ViewFish = () => {
 	const {id} = useParams();
@@ -76,14 +77,49 @@ const ViewFish = () => {
 
 				{/* Header */}
 				<div className="mb-8">
-					<div className="flex items-center gap-3 mb-2">
-						<Fish className="h-8 w-8 text-primary" />
-						<h1 className="text-3xl md:text-4xl font-bold text-foreground">{fish.common_name}</h1>
+					<div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-6">
+						{/* Left: Name, Icon, Scientific Name, Care Badge */}
+						<div className="flex flex-col items-center md:items-start flex-1">
+							<div className="flex items-center gap-3 mb-2">
+								<Fish className="h-8 w-8 text-primary" />
+								<h1 className="text-3xl md:text-4xl font-bold text-foreground">{fish.common_name}</h1>
+							</div>
+							<p className="text-lg text-muted-foreground italic">{fish.scientific_name}</p>
+							<Badge variant="secondary" className="mt-2 self-start">
+								{fish.care_level} Care
+							</Badge>
+						</div>
+						{/* Right: Species Image */}
+						{fish.primary_image && (
+							<div className="flex justify-center items-center flex-shrink-0">
+								<div
+									className="rounded-xl overflow-hidden shadow-lg"
+									style={{
+										background: "linear-gradient(135deg, #1e293b 60%, #334155 100%)",
+										padding: "1.5rem",
+										display: "flex",
+										justifyContent: "center",
+										alignItems: "center",
+										maxWidth: "340px",
+										width: "100%",
+									}}>
+									<img
+										src={fish.primary_image}
+										alt={fish.common_name}
+										className="rounded-lg transition-transform duration-300 ease-in-out hover:scale-105"
+										style={{
+											boxShadow: "0 4px 24px rgba(0,0,0,0.25)",
+											maxHeight: "200px",
+											width: "auto",
+											objectFit: "cover",
+											border: "2px solid #334155",
+											background: "#fff",
+										}}
+									/>
+								</div>
+							</div>
+						)}
 					</div>
-					<p className="text-lg text-muted-foreground italic">{fish.scientific_name}</p>
-					<Badge variant="secondary" className="mt-2">
-						{fish.care_level} Care
-					</Badge>
 				</div>
 
 				{/* Basic Info Grid */}
@@ -98,14 +134,32 @@ const ViewFish = () => {
 							<InfoItem icon={MapPin} label="Origin" value={fish.origin || "N/A"} />
 							<InfoItem icon={Droplets} label="Water Type" value={fish.water_type} />
 							<InfoItem icon={Ruler} label="Max Size" value={fish.max_size_cm ? `${fish.max_size_cm} cm` : "N/A"} />
-							<InfoItem icon={Thermometer} label="Min Temp" value={fish.min_temp ? `${fish.min_temp}°C` : "N/A"} />
-							<InfoItem icon={Thermometer} label="Max Temp" value={fish.max_temp ? `${fish.max_temp}°C` : "N/A"} />
-							<InfoItem icon={Droplets} label="Min pH" value={fish.min_ph ? `${fish.min_ph}` : "N/A"} />
-							<InfoItem icon={Droplets} label="Max pH" value={fish.max_ph ? `${fish.max_ph}` : "N/A"} />
-							<InfoItem icon={Droplets} label="Min Hardness" value={fish.min_hardness ? `${fish.min_hardness}` : "N/A"} />
-							<InfoItem icon={Droplets} label="Max Hardness" value={fish.max_hardness ? `${fish.max_hardness}` : "N/A"} />
 							<InfoItem icon={Utensils} label="Diet Type" value={fish.diet_type || "N/A"} />
-							<InfoItem icon={Users} label="Temperament" value={fish.temperament || "N/A"} />
+						</div>
+						<div className="mt-6">
+							<RangeBar
+								label="pH Range"
+								rangeMin={Number(fish.min_ph)}
+								rangeMax={Number(fish.max_ph)}
+								fixedScale={[4, 10]}
+								gradient="linear-gradient(90deg, #ff0000 0%, #ffff00 50%, #0000ff 100%)"
+							/>
+							<RangeBar
+								label="Temperature Range"
+								rangeMin={Number(fish.min_temp)}
+								rangeMax={Number(fish.max_temp)}
+								unit="°C"
+								fixedScale={[10, 40]}
+								gradient="linear-gradient(90deg, #00bfff 0%, #ffff00 50%, #ff0000 100%)"
+							/>
+							<RangeBar
+								label="Hardness Range"
+								rangeMin={Number(fish.min_hardness)}
+								rangeMax={Number(fish.max_hardness)}
+								unit=" dGH"
+								fixedScale={[0, 30]}
+								gradient="linear-gradient(90deg, #b3e0ff 0%, #00ff00 50%, #a0522d 100%)"
+							/>
 						</div>
 					</CardContent>
 				</Card>
