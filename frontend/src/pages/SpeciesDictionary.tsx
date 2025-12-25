@@ -16,6 +16,7 @@ import { Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { speciesApi } from "@/api/modules/species";
 import type { SpeciesItem, SearchSpeciesParams } from "@/api/apiTypes";
+import { useNavigate } from "react-router-dom";
 
 const speciesCategories = [
   { name: "Aquatic Plants", position: "top-left", type: "aquaticplants" },
@@ -36,6 +37,7 @@ const SpeciesDictionary = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
+  const navigate = useNavigate();
 
   useEffect(() => {}, []);
 
@@ -216,6 +218,7 @@ const SpeciesDictionary = () => {
             <Card
               key={fish.fish_id}
               className="hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer"
+              onClick={()=> navigate(`/view/fish/${fish.fish_id}`)}
             >
               <CardHeader>
                 <div className="text-5xl mb-4 text-center">

@@ -1,5 +1,6 @@
 import {useState, useEffect} from "react";
 import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
+import {useNavigate} from "react-router-dom";
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
@@ -26,6 +27,7 @@ import CircularLoader from "../ui/CircularLoader";
 
 const ManageSpecies = () => {
 	const queryClient = useQueryClient();
+	const navigate = useNavigate();
 	const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 	const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 	const [selectedSpecies, setSelectedSpecies] = useState<SpeciesItem | null>(null);
@@ -282,6 +284,7 @@ const ManageSpecies = () => {
 													<Button
 														size="sm"
 														variant="ghost"
+														onClick={() => window.open(`/view/fish/${spec.fish_id}`, "_blank")}
 														className="h-8 w-8 p-0 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10">
 														<Eye className="w-4 h-4" />
 													</Button>
