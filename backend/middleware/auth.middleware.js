@@ -116,3 +116,38 @@ export const canEditGuideMiddleware = async (req, res, next) => {
     });
   }
 };
+
+export const optionalProtectRoute = async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    // No token → guest request
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return next();
+    }
+
+    const accessToken = authHeader.split(" ")[1];
+
+    try {
+      const decoded = jwt.verify(
+        accessToken,
+        process.env.ACCESS_TOKEN_SECRET
+      );
+
+      const user = await User.findByPk(decoded.userId, {
+        attributes: { exclude: ["password"] },
+      });
+
+      if (user) {
+        req.user = user; // 👈 attach ONLY if valid
+      }
+    } catch (error) {
+      // Ignore token errors → treat as guest
+    }
+
+    next();
+  } catch (error) {
+    console.error("Error in optionalProtectRoute:", error.message);
+    next();
+  }
+};

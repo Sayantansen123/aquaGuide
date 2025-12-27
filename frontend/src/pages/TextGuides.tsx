@@ -1,5 +1,6 @@
 import { TextGuide } from "@/api/apiTypes";
 import { textApi } from "@/api/modules/text";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -9,78 +10,19 @@ import {
 } from "@/components/ui/card";
 import CircularLoader from "@/components/ui/CircularLoader";
 import { useTextGuidePublic } from "@/hooks/useTextGuidePublic";
-import { BookOpen, Clock } from "lucide-react";
+import { BookOpen, ChevronLeft, ChevronRight, Clock } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
 const iconArray = ["🐠", "💧", "🏥", "🌿", "🌱", "🥚", "🌍"];
 
-const guides = [
-  {
-    id: 1,
-    title: "Complete Beginner's Guide to Fishkeeping",
-    category: "Beginner",
-    readTime: "15 min",
-    icon: "🐠",
-  },
-  {
-    id: 2,
-    title: "The Ultimate Guide to Water Chemistry",
-    category: "Water Parameters",
-    readTime: "20 min",
-    icon: "💧",
-  },
-  {
-    id: 3,
-    title: "Aquascaping 101: Create Stunning Underwater Landscapes",
-    category: "Aquascaping",
-    readTime: "25 min",
-    icon: "🌿",
-  },
-  {
-    id: 4,
-    title: "Fish Health and Disease Prevention",
-    category: "Health",
-    readTime: "18 min",
-    icon: "🏥",
-  },
-  {
-    id: 5,
-    title: "Setting Up a Planted Aquarium",
-    category: "Plants",
-    readTime: "22 min",
-    icon: "🌱",
-  },
-  {
-    id: 6,
-    title: "Advanced Breeding Techniques",
-    category: "Breeding",
-    readTime: "30 min",
-    icon: "🥚",
-  },
-  {
-    id: 7,
-    title: "Choosing the Right Filter System",
-    category: "Equipment",
-    readTime: "12 min",
-    icon: "⚙️",
-  },
-  {
-    id: 8,
-    title: "Creating a Biotope Aquarium",
-    category: "Advanced",
-    readTime: "28 min",
-    icon: "🌍",
-  },
-];
-
 const TextGuides = () => {
   const [page, setPage] = useState(1);
   const { data, isLoading, isError } = useTextGuidePublic(page);
 
   const textGuidesArray: TextGuide[] = data?.data || [];
-
+  const totalPages: number = data?.pagination?.totalPages || 1;
 
   const navigate = useNavigate();
 
@@ -89,7 +31,11 @@ const TextGuides = () => {
   };
   if (isLoading) return <CircularLoader />;
   if (isError)
-    return (<div className="text-red-600">Failed to load guides. Please try again later.</div>);
+    return (
+      <div className="text-red-600">
+        Failed to load guides. Please try again later.
+      </div>
+    );
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="mb-6 md:mb-8">
@@ -133,6 +79,38 @@ const TextGuides = () => {
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      <div className="flex items-center justify-center gap-2 sm:gap-4 mt-8">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+          disabled={page === 1}
+          className="flex items-center gap-1 sm:gap-2"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          <span className="hidden sm:inline">Previous</span>
+        </Button>
+
+        <div className="flex items-center gap-1 sm:gap-2 text-sm sm:text-base font-medium">
+          <span className="px-2 py-1 bg-primary text-primary-foreground rounded-md min-w-[2rem] text-center">
+            {page}
+          </span>
+          <span className="text-muted-foreground">/</span>
+          <span className="text-muted-foreground">{totalPages}</span>
+        </div>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+          disabled={page === totalPages}
+          className="flex items-center gap-1 sm:gap-2"
+        >
+          <span className="hidden sm:inline">Next</span>
+          <ChevronRight className="h-4 w-4" />
+        </Button>
       </div>
     </div>
   );

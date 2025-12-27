@@ -25,6 +25,29 @@ Guest.init(
         isIP: true, // supports IPv4 & IPv6
       },
     },
+    country_code: {
+      type: DataTypes.STRING(2), // ISO-2: IN, US, GB
+      allowNull: true,
+    },
+    region: {
+      type: DataTypes.STRING, // e.g. "West Bengal", "California"
+      allowNull: true,
+    },
+
+    latitude: {
+      type: DataTypes.DECIMAL(9, 6),
+      allowNull: true,
+    },
+
+    longitude: {
+      type: DataTypes.DECIMAL(9, 6),
+      allowNull: true,
+    },
+    last_seen: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+
   },
   {
     sequelize,

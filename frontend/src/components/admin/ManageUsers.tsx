@@ -17,6 +17,8 @@ import {
   ShieldOff,
   Crown,
   CircleAlert,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -29,10 +31,13 @@ import CircularLoader from "../ui/CircularLoader";
 
 const ManageUsers = () => {
   const userid = localStorage.getItem("userid");
+  const [page, setPage] = useState(1);
+
   // const [users] = useState(mockUsers);
   const queryClient = useQueryClient();
-  const { data, isLoading, isError } = useUsers();
+  const { data, isLoading, isError } = useUsers(page);
   const userArray: User[] = data?.users || [];
+  const totalPages: number = data?.pagination?.totalPages || 1;
 
   const deactivateUserMutation = useMutation({
     mutationFn: authApi.deactivateUser,
@@ -377,6 +382,38 @@ const ManageUsers = () => {
         {userArray.map((user) => (
           <MobileUserCard key={user.id} user={user} />
         ))}
+      </div>
+
+      <div className="flex items-center justify-center gap-2 sm:gap-4 mt-8">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+          disabled={page === 1}
+          className="flex items-center gap-1 sm:gap-2"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          <span className="hidden sm:inline">Previous</span>
+        </Button>
+
+        <div className="flex items-center gap-1 sm:gap-2 text-sm sm:text-base font-medium">
+          <span className="px-2 py-1 bg-primary text-primary-foreground rounded-md min-w-[2rem] text-center">
+            {page}
+          </span>
+          <span className="text-muted-foreground">/</span>
+          <span className="text-muted-foreground">{totalPages}</span>
+        </div>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+          disabled={page === totalPages}
+          className="flex items-center gap-1 sm:gap-2"
+        >
+          <span className="hidden sm:inline">Next</span>
+          <ChevronRight className="h-4 w-4" />
+        </Button>
       </div>
     </div>
   );

@@ -44,9 +44,9 @@ export const authApi = {
       headers: { useAuth: true },
     }),
 
-  getUsersData: async (): Promise<UserDetailsResponse> => {
+  getUsersData: async (page: number): Promise<UserDetailsResponse> => {
     const res = await httpClient.get<UserDetailsResponse>(
-      "/api/manage_users/manage-users",
+      `/api/manage_users/manage-users?page=${page}`,
       {
         headers: { useAuth: true },
       }

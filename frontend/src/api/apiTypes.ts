@@ -63,20 +63,20 @@ export interface UpdatePasswordResponse {
   message: string;
 }
 
-export interface UserDetailsResponse {
-  id: string;
-  userid: string;
-  name: string;
-  email: string;
-  dob: string; // ISO date string, e.g. "1990-01-01"
-  gender: "male" | "female" | "rather_not_say";
-  role: "user" | "admin" | "support";
-  status: "active" | "inactive" | "locked";
-  community_rating: number;
-  createdAt: string; // ISO date string
-  videos_posted: number;
-  articles_posted: number;
-}
+// export interface UserDetailsResponse {
+//   id: string;
+//   userid: string;
+//   name: string;
+//   email: string;
+//   dob: string; // ISO date string, e.g. "1990-01-01"
+//   gender: "male" | "female" | "rather_not_say";
+//   role: "user" | "admin" | "support";
+//   status: "active" | "inactive" | "locked";
+//   community_rating: number;
+//   createdAt: string; // ISO date string
+//   videos_posted: number;
+//   articles_posted: number;
+// }
 
 export interface RoleResponse {
   role: string;
@@ -116,8 +116,8 @@ export interface approvalIds {
 }
 
 export interface getVideoResponse {
-  message: string;
-  video: VideoArray[];
+  videos: VideoArray[];
+  pagination: paginate;
 }
 
 export interface Guest {
@@ -148,6 +148,14 @@ export interface User {
 export interface UserDetailsResponse {
   title: string;
   users: User[];
+  pagination: paginate;
+}
+
+export interface paginate {
+  total_items: number;
+  current_page: number;
+  totalPages: number;
+  pageSize: number;
 }
 
 export interface TextGuidePayload {
@@ -314,18 +322,17 @@ export interface author {
   role: "admin" | "user" | "support";
 }
 
-export interface Pagination {
-  total_items: number;
-  current_page: number;
-  totalPages: number;
-  pageSize: number;
-}
+// export interface Pagination {
+//   total_items: number;
+//   current_page: number;
+//   totalPages: number;
+//   pageSize: number;
+// }
 
 export interface GetAllTextGuidesResponse {
   data: TextGuide[]; // array of guides
   pagination: Pagination; // pagination info
 }
-
 
 export interface CommunityForum {
   id: string;
@@ -356,7 +363,7 @@ export interface PaginationMeta {
   total_pages: number | null;
   page_size: number;
 }
-export interface getAllCommunityForum{
+export interface getAllCommunityForum {
   data: CommunityForum[];
   pagination: PaginationMeta;
 }
@@ -386,23 +393,23 @@ export interface CommunityForumDetailResponse {
   total_comments: number;
 }
 
-export interface CommunityApproveRejectDeleteResponse{
-  message: string
+export interface CommunityApproveRejectDeleteResponse {
+  message: string;
 }
 
-export interface LikeDislikeCommunity{
-  data: CommunityForum,
-  message: string
+export interface LikeDislikeCommunity {
+  data: CommunityForum;
+  message: string;
 }
 
-export interface CommunityForumPayload{
-  title: string,
-  content: string
+export interface CommunityForumPayload {
+  title: string;
+  content: string;
 }
 
 
-export interface LikeDislikePayload{
-  forum_id: string
+export interface LikeDislikePayload {
+  forum_id: string;
 }
 export interface GetSpeciesDetailResponse {
   species: SpeciesItem;

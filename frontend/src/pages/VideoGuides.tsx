@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -7,7 +8,7 @@ import {
 } from "@/components/ui/card";
 import CircularLoader from "@/components/ui/CircularLoader";
 import { useVideoUsers } from "@/hooks/useVideoUsers";
-import { Play } from "lucide-react";
+import { ChevronLeft, ChevronRight, Play } from "lucide-react";
 import { useState } from "react";
 
 const videos = [
@@ -72,7 +73,8 @@ const videos = [
 const VideoGuides = () => {
   const [page, setPage] = useState(1);
   const { data, isError, isLoading } = useVideoUsers(page);
-  const videoArray = data?.video || [];
+  const videoArray = data?.videos || [];
+  const totalPages = data?.pagination?.totalPages || 1;
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -123,6 +125,38 @@ const VideoGuides = () => {
           ))}
         </div>
       )}
+
+      <div className="flex items-center justify-center gap-2 sm:gap-4 mt-8">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+          disabled={page === 1}
+          className="flex items-center gap-1 sm:gap-2"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          <span className="hidden sm:inline">Previous</span>
+        </Button>
+
+        <div className="flex items-center gap-1 sm:gap-2 text-sm sm:text-base font-medium">
+          <span className="px-2 py-1 bg-primary text-primary-foreground rounded-md min-w-[2rem] text-center">
+            {page}
+          </span>
+          <span className="text-muted-foreground">/</span>
+          <span className="text-muted-foreground">{totalPages}</span>
+        </div>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+          disabled={page === totalPages}
+          className="flex items-center gap-1 sm:gap-2"
+        >
+          <span className="hidden sm:inline">Next</span>
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
     </div>
   );
 };

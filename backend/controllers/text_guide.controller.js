@@ -47,7 +47,7 @@ export const get_all_guides = async (req, res) => {
 export const get_text_guide = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = 20;
+    const limit = 2;
     const offset = (page - 1) * limit;
     const { count, rows } = await TextModel.findAndCountAll({
       where: { status: "approved" },
@@ -149,8 +149,12 @@ export const post_text_guide = async (req, res) => {
 //sayantan
 export const approve_or_reject_text = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { status } = req.body;
+    const { ids, status } = req.body;
+
+    // Validation
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: "ids must be a non-empty array" });
+    }
 
     if (!["approved", "rejected"].includes(status)) {
       return res
@@ -158,27 +162,39 @@ export const approve_or_reject_text = async (req, res) => {
         .json({ message: "Status must be 'approved' or 'rejected'" });
     }
 
-    const text_guide = await TextModel.findByPk(id);
-    if (!text_guide) {
-      return res.status(404).json({ message: "Text guide not found" });
+    // Bulk update
+    const [updatedCount] = await TextModel.update(
+      {
+        status,
+        rejection_status: null,
+        rejection_requested_by: null,
+        rejection_justification: null,
+      },
+      {
+        where: {
+          id: ids,
+        },
+      }
+    );
+
+    if (updatedCount === 0) {
+      return res.status(404).json({
+        message: "No text guides found for provided ids",
+      });
     }
 
-    // Admin is making a final decision, clear any previous rejection workflow
-    text_guide.status = status;
-    text_guide.rejection_status = null;
-    text_guide.rejection_requested_by = null;
-    text_guide.rejection_justification = null;
-
-    await text_guide.save();
-
-    res.status(200).json({ message: "Text Guide status updated successfully" });
+    return res.status(200).json({
+      message: "Text guides updated successfully",
+      updatedCount,
+    });
   } catch (err) {
-    console.error(err.message);
-    res
-      .status(500)
-      .json({ message: "Some error occured approving the text guide" });
+    console.error(err);
+    return res.status(500).json({
+      message: "Some error occurred while updating text guides",
+    });
   }
 };
+
 /**
  * SUPPORT APPROVE / REQUEST REJECTION
  * PUT /approve_or_reject_text_guide/:id
@@ -350,28 +366,42 @@ export const update_text_guide = async (req, res) => {
 //sayantan
 export const delete_text_guide = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { ids } = req.body;
 
-    const text_guide = await TextModel.findByPk(id);
-    if (!text_guide) {
-      return res.status(404).json({ message: "Text guide not found" });
-    }
-
-    // Extra safety: ensure admin
+    // Admin safety check
     if (req.user.role !== "admin") {
       return res
         .status(403)
         .json({ message: "Only admins can delete text guides" });
     }
 
-    await text_guide.destroy();
+    // Validation
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: "ids must be a non-empty array" });
+    }
 
-    res.status(200).json({ message: "Text guide deleted successfully" });
+    // Bulk delete
+    const deletedCount = await TextModel.destroy({
+      where: {
+        id: ids,
+      },
+    });
+
+    if (deletedCount === 0) {
+      return res.status(404).json({
+        message: "No text guides found for provided ids",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Text guides deleted successfully",
+      deletedCount,
+    });
   } catch (err) {
-    console.error(err.message);
-    res
-      .status(500)
-      .json({ message: "Some error occured deleting the text guide" });
+    console.error(err);
+    return res.status(500).json({
+      message: "Some error occurred deleting the text guides",
+    });
   }
 };
 

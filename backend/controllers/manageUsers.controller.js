@@ -1,15 +1,19 @@
-
-import User from '../models/user.model.js'; // Adjust the path to your User model
+import User from "../models/user.model.js"; // Adjust the path to your User model
 import { Op, fn, col, where } from "sequelize";
 // Helper function to send status messages (like Flask's flash)
-const sendResponseAndRedirect = (res, success, message, redirectPath = '/admin/manage-users') => {
-    // In a REST API, you'd usually just send JSON. 
-    // Since the original code redirects, we'll send a message and tell the client where to go.
-    return res.status(success ? 200 : 400).json({ 
-        success, 
-        message, 
-        redirect: redirectPath 
-    });
+const sendResponseAndRedirect = (
+  res,
+  success,
+  message,
+  redirectPath = "/admin/manage-users"
+) => {
+  // In a REST API, you'd usually just send JSON.
+  // Since the original code redirects, we'll send a message and tell the client where to go.
+  return res.status(success ? 200 : 400).json({
+    success,
+    message,
+    redirect: redirectPath,
+  });
 };
 // Simple helper to enforce admin seniority rule
 const assertCanActOnTargetAdmin = (currentUser, targetUser) => {
@@ -32,7 +36,7 @@ export const manageUsers = async (req, res, next) => {
 
     // pagination
     const page = parseInt(req.query.page) || 1;
-    const per_page = parseInt(req.query.limit) || 20;
+    const per_page = parseInt(req.query.limit) || 3;
     const offset = (page - 1) * per_page;
 
     let queryOptions = {
@@ -72,8 +76,8 @@ export const manageUsers = async (req, res, next) => {
 // POST /user/:id/activate
 export const activateUser = async (req, res, next) => {
   try {
-    const { userId } = req.params;              // was userId
-    const currentUser = req.user;           // logged-in admin
+    const { userId } = req.params; // was userId
+    const currentUser = req.user; // logged-in admin
 
     const user = await User.findByPk(userId);
     if (!user) {
@@ -82,7 +86,11 @@ export const activateUser = async (req, res, next) => {
 
     // Prevent admin from modifying their own account status
     if (user.id === currentUser.id) {
-      return sendResponseAndRedirect(res, false, "You cannot activate your own account.");
+      return sendResponseAndRedirect(
+        res,
+        false,
+        "You cannot activate your own account."
+      );
     }
 
     // 🔴 AGE-BASED ADMIN CHECK
@@ -114,7 +122,11 @@ export const deactivateUser = async (req, res, next) => {
     }
 
     if (user.id === currentUser.id) {
-      return sendResponseAndRedirect(res, false, "You cannot deactivate your own account.");
+      return sendResponseAndRedirect(
+        res,
+        false,
+        "You cannot deactivate your own account."
+      );
     }
 
     // 🔴 AGE-BASED ADMIN CHECK
@@ -181,7 +193,11 @@ export const toggleAdmin = async (req, res, next) => {
 
     // Prevent self-modification
     if (user.id === currentUser.id) {
-      return sendResponseAndRedirect(res, false, "You can't change your own admin rights.");
+      return sendResponseAndRedirect(
+        res,
+        false,
+        "You can't change your own admin rights."
+      );
     }
 
     // 🔴 AGE-BASED ADMIN CHECK
@@ -189,7 +205,9 @@ export const toggleAdmin = async (req, res, next) => {
 
     // Optional safety: prevent removing the last admin
     if (user.role === "admin") {
-      const remainingAdminsCount = await User.count({ where: { role: "admin" } });
+      const remainingAdminsCount = await User.count({
+        where: { role: "admin" },
+      });
       if (remainingAdminsCount <= 1) {
         return sendResponseAndRedirect(
           res,
@@ -278,10 +296,11 @@ export const deleteUser = async (req, res) => {
     res.json({ message: "User deleted successfully" });
   } catch (err) {
     console.error(err);
-    res.status(err.status || 500).json({ message: err.message || "Server error" });
+    res
+      .status(err.status || 500)
+      .json({ message: err.message || "Server error" });
   }
 };
-
 
 export const searchUser = async (req, res, next) => {
   try {
