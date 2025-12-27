@@ -115,6 +115,11 @@ export interface approvalIds {
   ids: string[];
 }
 
+export interface rejectorapproveIds {
+  ids: string[];
+  status: string;
+}
+
 export interface getVideoResponse {
   videos: VideoArray[];
   pagination: paginate;

@@ -1,6 +1,8 @@
 import httpClient from "@/api/axiosSetup";
 import {
+  approvalIds,
   GetAllTextGuidesResponse,
+  rejectorapproveIds,
   TextGuide,
   TextGuidePayload,
 } from "../apiTypes";
@@ -37,6 +39,16 @@ export const textApi = {
 
   getTextGuideByid: async (id: string) =>
     httpClient.get<TextGuide>(`/api/textguides/get_text_guide/${id}`, {
+      headers: { useAuth: true },
+    }),
+
+  setDelete: (data: approvalIds) =>
+    httpClient.post<any>("/api/textguides/text_guide_delete", data, {
+      headers: { useAuth: true },
+    }),
+
+  setApproveOrReject: (data: rejectorapproveIds) =>
+    httpClient.put<any>("/api/textguides/approve_or_reject", data, {
       headers: { useAuth: true },
     }),
 };

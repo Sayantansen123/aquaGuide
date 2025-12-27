@@ -111,6 +111,8 @@ router.get(
  *       200:
  *         description: Status updated
  */
+
+//sayantan
 router.put(
   "/approve_or_reject",
   protectRoute,
@@ -226,6 +228,8 @@ router.put(
  *       200:
  *         description: Guide deleted
  */
-router.delete("/text_guide", protectRoute, adminRoute, delete_text_guide);
+
+//sayantan
+router.post("/text_guide_delete", protectRoute, adminRoute, delete_text_guide);
 
 export default router;

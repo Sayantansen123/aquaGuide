@@ -15,7 +15,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Eye, Pencil, Check, X, Trash2 } from "lucide-react";
+import {
+  Eye,
+  Pencil,
+  Check,
+  X,
+  Trash2,
+  ChevronRight,
+  ChevronLeft,
+} from "lucide-react";
 import { useTextGuide } from "@/hooks/useTextGuide";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { textApi } from "@/api/modules/text";
@@ -68,6 +76,7 @@ const ManageTextGuides = ({ placeholder }) => {
   const [title, setTitle] = useState("");
   const [page, setPage] = useState(1);
   const { data, isLoading, isError } = useTextGuide(page);
+  const totalPages = data?.pagination?.totalPages || 1;
   const editor = useRef(null);
   const queryClient = useQueryClient();
   const [content, setContent] = useState("");
@@ -89,6 +98,32 @@ const ManageTextGuides = ({ placeholder }) => {
     },
     onError: () => {
       toast.error("Failed to create text guide");
+    },
+  });
+
+  const deleteTextGuideMutation = useMutation({
+    mutationFn: textApi.setDelete,
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["texts"] });
+      toast.success("Text guide deleted successfully");
+      setTitle("");
+      setContent("");
+    },
+    onError: () => {
+      toast.error("Failed to delete text guide");
+    },
+  });
+
+  const approveorrejectTextGuideMutation = useMutation({
+    mutationFn: textApi.setApproveOrReject,
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["texts"] });
+      toast.success("Text guide deleted successfully");
+      setTitle("");
+      setContent("");
+    },
+    onError: () => {
+      toast.error("Failed to update text guide status");
     },
   });
 
@@ -131,7 +166,17 @@ const ManageTextGuides = ({ placeholder }) => {
 
   const handleBulkAction = (action: "approve" | "reject" | "delete") => {
     if (action === "delete") {
-    } else {
+      deleteTextGuideMutation.mutate({ ids: selectedGuides });
+    } else if (action === "approve") {
+      approveorrejectTextGuideMutation.mutate({
+        ids: selectedGuides,
+        status: "approved",
+      });
+    } else if (action === "reject") {
+      approveorrejectTextGuideMutation.mutate({
+        ids: selectedGuides,
+        status: "rejected",
+      });
     }
     setSelectedGuides([]);
   };
@@ -156,7 +201,12 @@ const ManageTextGuides = ({ placeholder }) => {
       </Badge>
     );
   };
-  if (isError) return <div className="text-red-600">Failed to load guides. Please try again later.</div>;
+  if (isError)
+    return (
+      <div className="text-red-600">
+        Failed to load guides. Please try again later.
+      </div>
+    );
   return (
     <div className="space-y-6">
       <h1 className="text-2xl md:text-3xl font-bold text-foreground">
@@ -235,7 +285,9 @@ const ManageTextGuides = ({ placeholder }) => {
           <CardTitle className="text-lg">Submitted Guides</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          {isLoading ? <CircularLoader /> : (
+          {isLoading ? (
+            <CircularLoader />
+          ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
@@ -304,6 +356,40 @@ const ManageTextGuides = ({ placeholder }) => {
                   ))}
                 </TableBody>
               </Table>
+
+              <div className="flex items-center justify-center gap-2 sm:gap-4 mt-8 mb-8">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={page === 1}
+                  className="flex items-center gap-1 sm:gap-2"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  <span className="hidden sm:inline">Previous</span>
+                </Button>
+
+                <div className="flex items-center gap-1 sm:gap-2 text-sm sm:text-base font-medium">
+                  <span className="px-2 py-1 bg-primary text-primary-foreground rounded-md min-w-[2rem] text-center">
+                    {page}
+                  </span>
+                  <span className="text-muted-foreground">/</span>
+                  <span className="text-muted-foreground">{totalPages}</span>
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    setPage((prev) => Math.min(prev + 1, totalPages))
+                  }
+                  disabled={page === totalPages}
+                  className="flex items-center gap-1 sm:gap-2"
+                >
+                  <span className="hidden sm:inline">Next</span>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>
