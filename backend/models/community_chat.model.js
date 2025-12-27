@@ -24,16 +24,29 @@ CommunityChat.init(
             defaultValue: DataTypes.UUIDV4,
             allowNull: false
         },
-        message: {
-            type: DataTypes.TEXT,
-            allowNull: false,
-            validate: {
-                len: [1, 5000],
-            },
-        },
         edited_at: {
             type: DataTypes.DATE,
             allowNull: true,
+        },
+        rejection_justification: {
+            type: DataTypes.TEXT,
+            allowNull: true
+
+        },
+        rejection_requested_by: {
+            type: DataTypes.UUID,
+            references: {
+                model: "Users",
+                key: "id",
+            },
+            allowNull: true,
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE"
+        },
+        rejection_status: {
+            type: DataTypes.ENUM("pending", "approved", "denied"),
+            defaultValue: "pending",
+            allowNull: true
         },
         is_deleted: {
             type: DataTypes.BOOLEAN,

@@ -11,121 +11,67 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import speciesIcon from "@/assets/logo_dict.png";
+import { Loader2 } from "lucide-react";
+
+import { useQuery } from "@tanstack/react-query";
+import { speciesApi } from "@/api/modules/species";
+import type { SpeciesItem, SearchSpeciesParams } from "@/api/apiTypes";
 
 const speciesCategories = [
-  { name: "Aquatic Plants", position: "top-left" },
-  { name: "Brackish Fish", position: "left" },
-  { name: "Marine Fish", position: "bottom-left" },
-  { name: "Freshwater Fish", position: "bottom" },
+  { name: "Aquatic Plants", position: "top-left", type: "aquaticplants" },
+  { name: "Brackish Fish", position: "left", type: "brackish" },
+  { name: "Marine Fish", position: "bottom-left", type: "marine" },
+  { name: "Freshwater Fish", position: "bottom", type: "freshwater" },
 ];
 
 const careCategories = [
-  { name: "Very Easy Care", position: "top-right" },
-  { name: "Easy Care", position: "right-top" },
-  { name: "Moderate Care", position: "right" },
-  { name: "Difficult Care", position: "right-bottom" },
-  { name: "Expert Care", position: "bottom-right" },
-];
-
-const species = [
-  {
-    id: 1,
-    name: "Betta Fish",
-    type: "Freshwater",
-    ph: "6.5-7.5",
-    care: "Easy",
-    size: "2.5-3 inches",
-    temp: "76-82°F",
-    icon: "🐟",
-  },
-  {
-    id: 2,
-    name: "Neon Tetra",
-    type: "Freshwater",
-    ph: "6.0-7.0",
-    care: "Easy",
-    size: "1.5 inches",
-    temp: "70-81°F",
-    icon: "🐠",
-  },
-  {
-    id: 3,
-    name: "Clownfish",
-    type: "Saltwater",
-    ph: "8.0-8.4",
-    care: "Moderate",
-    size: "3-4 inches",
-    temp: "75-82°F",
-    icon: "🤡",
-  },
-  {
-    id: 4,
-    name: "Angelfish",
-    type: "Freshwater",
-    ph: "6.5-7.5",
-    care: "Moderate",
-    size: "6 inches",
-    temp: "75-82°F",
-    icon: "👼",
-  },
-  {
-    id: 5,
-    name: "Goldfish",
-    type: "Coldwater",
-    ph: "7.0-8.0",
-    care: "Easy",
-    size: "6-10 inches",
-    temp: "65-72°F",
-    icon: "🐡",
-  },
-  {
-    id: 6,
-    name: "Guppy",
-    type: "Tropical",
-    ph: "6.8-7.8",
-    care: "Easy",
-    size: "1.5-2 inches",
-    temp: "72-82°F",
-    icon: "🎨",
-  },
-  {
-    id: 7,
-    name: "Discus",
-    type: "Freshwater",
-    ph: "6.0-7.0",
-    care: "Hard",
-    size: "8-10 inches",
-    temp: "82-86°F",
-    icon: "💿",
-  },
-  {
-    id: 8,
-    name: "Tang Fish",
-    type: "Saltwater",
-    ph: "8.1-8.4",
-    care: "Moderate",
-    size: "10-12 inches",
-    temp: "72-78°F",
-    icon: "🐠",
-  },
+  { name: "Very Easy Care", position: "top-right", type: "very_easy" },
+  { name: "Easy Care", position: "right-top", type: "easy" },
+  { name: "Moderate Care", position: "right", type: "moderate" },
+  { name: "Difficult Care", position: "right-bottom", type: "difficult" },
+  { name: "Expert Care", position: "bottom-right", type: "expert" },
 ];
 
 const SpeciesDictionary = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [page, setPage] = useState(1);
 
   useEffect(() => {}, []);
 
-  const filteredSpecies = species.filter((fish) => {
-    const matchesCategory =
-      !selectedCategory ||
-      fish.type === selectedCategory ||
-      fish.care === selectedCategory;
-    const matchesSearch = fish.name
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    return matchesCategory && matchesSearch;
+  // Build params for API
+  const params: SearchSpeciesParams = {
+    page,
+    limit: 20,
+  };
+
+  if (selectedCategory) {
+    const speciesType = speciesCategories.find(
+      (c) => c.type === selectedCategory
+    );
+    const careType = careCategories.find((c) => c.type === selectedCategory);
+
+    if (speciesType) {
+      params.waterType = selectedCategory;
+    }
+    if (careType) {
+      params.careLevel = selectedCategory;
+    }
+  }
+  if (searchTerm) params.query = searchTerm;
+
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["species-dictionary", params],
+    queryFn: () => speciesApi.searchSpecies(params),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000,
   });
+
+  // Print the received data for debugging
+  console.log("SpeciesDictionary data:", data);
+
+  const speciesArray: SpeciesItem[] = data?.data.species || [];
+  const totalPages: number = data?.data.totalPages || 1;
 
   const getPositionClasses = (position: string) => {
     const baseClasses = "absolute";
@@ -200,7 +146,7 @@ const SpeciesDictionary = () => {
                 )} whitespace-nowrap text-xs sm:text-lg px-3 py-2 sm:px-4 sm:py-2 z-20`}
                 onClick={() =>
                   setSelectedCategory(
-                    selectedCategory === category.name ? null : category.name
+                    selectedCategory === category.type ? null : category.type
                   )
                 }
               >
@@ -213,14 +159,14 @@ const SpeciesDictionary = () => {
               <Button
                 key={category.name}
                 variant={
-                  selectedCategory === category.name ? "default" : "outline"
+                  selectedCategory === category.type ? "default" : "outline"
                 }
                 className={`${getPositionClasses(
                   category.position
                 )} whitespace-nowrap text-xs sm:text-lg px-3 py-2 sm:px-4 sm:py-2 z-20`}
                 onClick={() =>
                   setSelectedCategory(
-                    selectedCategory === category.name ? null : category.name
+                    selectedCategory === category.type ? null : category.type
                   )
                 }
               >
@@ -259,40 +205,82 @@ const SpeciesDictionary = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {filteredSpecies.map((fish) => (
-          <Card
-            key={fish.id}
-            className="hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer"
-          >
-            <CardHeader>
-              <div className="text-5xl mb-4 text-center">{fish.icon}</div>
-              <CardTitle className="text-center">{fish.name}</CardTitle>
-              <CardDescription className="text-center">
-                <Badge variant="secondary" className="mt-2">
-                  {fish.type}
-                </Badge>
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-muted-foreground">Care Level:</span>
-                <Badge className={getCareColor(fish.care)}>{fish.care}</Badge>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Size:</span>
-                <span className="font-medium">{fish.size}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">pH Range:</span>
-                <span className="font-medium">{fish.ph}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Temperature:</span>
-                <span className="font-medium">{fish.temp}</span>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12 w-[90vw]">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        ) : isError ? (
+          <div>Error loading species.</div>
+        ) : (
+          speciesArray.map((fish) => (
+            <Card
+              key={fish.fish_id}
+              className="hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer"
+            >
+              <CardHeader>
+                <div className="text-5xl mb-4 text-center">
+                  {/* Optionally render an icon or image */}
+                  {fish.primary_image ? (
+                    <img
+                      src={fish.primary_image}
+                      alt={fish.common_name}
+                      className="mx-auto h-36 w-44 object-center rounded-md overflow-hidden"
+                    />
+                  ) : (
+                    <span role="img" aria-label="fish">
+                      🐟
+                    </span>
+                  )}
+                </div>
+                <CardTitle className="text-center">
+                  {fish.common_name}
+                </CardTitle>
+                <CardDescription className="text-center">
+                  <Badge variant="secondary" className="mt-2">
+                    {fish.water_type}
+                  </Badge>
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-muted-foreground">Care Level:</span>
+                  <Badge className={getCareColor(fish.care_level || "")}>
+                    {fish.care_level}
+                  </Badge>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Size:</span>
+                  <span className="font-medium">
+                    {fish.max_size_cm ? `${fish.max_size_cm} cm` : "N/A"}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Origin:</span>
+                  <span className="font-medium">{fish.origin || "N/A"}</span>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
+
+      {/* Pagination Controls */}
+      <div className="flex justify-center gap-2 mt-6">
+        <Button
+          variant="outline"
+          disabled={page <= 1}
+          onClick={() => setPage((p) => Math.max(1, p - 1))}
+        >
+          Previous
+        </Button>
+        <span className="px-4 py-2">{`Page ${page} of ${totalPages}`}</span>
+        <Button
+          variant="outline"
+          disabled={page >= totalPages}
+          onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+        >
+          Next
+        </Button>
       </div>
     </div>
   );

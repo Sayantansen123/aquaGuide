@@ -1,6 +1,7 @@
 import CommunityChat from "../models/community_chat.model.js";
 import User from "../models/user.model.js";
 import sequelize from "../lib/db.js";
+import { or } from "sequelize";
 
 /**
  * REST API Controller for Community Chat
@@ -9,23 +10,48 @@ import sequelize from "../lib/db.js";
  */
 
 // Get all chat messages with pagination
+
+export const createRoom = async (req, res) =>{
+    try{
+        const userId = req.user.id;
+        const { room_id } = req.body;
+
+        const newRoom = await CommunityChat.create({
+            user_id: userId,
+            room_id: room_id
+        });   
+    }
+    catch(error){
+        console.error("Error creating chat room:", error);
+        res.status(500).json({ error: "Failed to create chat room" });
+    }
+}
 export const getAllMessages = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 50;
+        const room_id = req.query.room_id;
         const offset = (page - 1) * limit;
 
-        const { count, rows } = await CommunityChat.findAndCountAll({
-            where: { is_deleted: false },
+        const chat = await CommunityChat.findOne({
+            where: { id: room_id,
+                is_deleted: false,
+                status: 'approved' },
+        });
+
+        if (!chat) {
+            return res.status(404).json({ error: "Chat room not found" });
+        }
+
+        const { count, rows } = await CommunityChatMessages.findAndCountAll({
+            where: { community_chat_id: room_id },
             include: [
                 {
                     model: User,
                     attributes: ["id", "userid", "name"],
                 },
             ],
-            order: [["created_at", "ASC"]],
-            limit,
-            offset,
+            order: [["created_at", "DESC"]],
         });
 
         res.status(200).json({

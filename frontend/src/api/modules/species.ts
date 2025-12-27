@@ -36,8 +36,6 @@ export const speciesApi = {
         if (params.page) queryParams.append('page', params.page.toString());
 
 
-        return httpClient.get<GetSpeciesManagementResponse>(`/api/species-dictionary?${queryParams.toString()}`, {
-            headers: { useAuth: true },
-        });
+        return httpClient.get<GetSpeciesManagementResponse>(`/api/species-dictionary?${queryParams.toString()}`, { });
     },
 };

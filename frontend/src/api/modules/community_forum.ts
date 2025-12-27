@@ -1,4 +1,11 @@
-import { CommunityApproveRejectDeleteResponse, CommunityForumDetailResponse, CommunityForumPayload, getAllCommunityForum, LikeDislikeCommunity, LikeDislikePayload } from "../apiTypes";
+import {
+  CommunityApproveRejectDeleteResponse,
+  CommunityForumDetailResponse,
+  CommunityForumPayload,
+  getAllCommunityForum,
+  LikeDislikeCommunity,
+  LikeDislikePayload,
+} from "../apiTypes";
 import httpClient from "../axiosSetup";
 
 
@@ -62,17 +69,25 @@ export const community_forum_api = {
         return res.data;
     },
 
-    likeComment: async (data: LikeDislikePayload)=>{
-        const res = await httpClient.put<LikeDislikeCommunity>(`${BACKEND_URL}/api/community/like`,data, {
-            headers: {useAuth: true},
-        });
-        return res.data;
-    },
+  likeComment: async (data: LikeDislikePayload) => {
+    const res = await httpClient.put<LikeDislikeCommunity>(
+      "/api/community/like",
+      data,
+      {
+        headers: { useAuth: true },
+      }
+    );
+    return res.data;
+  },
 
-    dislikeComment: async (data: LikeDislikePayload)=>{
-        const res = await httpClient.put<LikeDislikeCommunity>(`${BACKEND_URL}/api/community/dislike`,data, {
-            headers: {useAuth: true},
-        });
-        return res.data;
-    },
-}
+  dislikeComment: async (data: LikeDislikePayload) => {
+    const res = await httpClient.put<LikeDislikeCommunity>(
+      "/api/community/dislike",
+      data,
+      {
+        headers: { useAuth: true },
+      }
+    );
+    return res.data;
+  },
+};

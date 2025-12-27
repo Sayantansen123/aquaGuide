@@ -81,9 +81,9 @@ router.get("/get_community_forum_by_id/:id", get_community_form_by_id)
  *       201:
  *         description: Community forum created successfully
  *       500:
- *         description: Interna; Server Errors
+ *         description: Internal Server Errors
  */
-router.post("/add_community_forum",protectRoute, supportOrAdminRoute, create_community_forum)
+router.post("/add_community_forum",protectRoute, create_community_forum)
 
 
 /**

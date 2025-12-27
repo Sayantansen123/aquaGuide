@@ -2,6 +2,7 @@ import Comments from './community_forum_comment.model.js';
 import CommunityForum from "./community_forum_model.js";
 import CommunityChat from "./community_chat.model.js";
 import User from "./user.model.js";
+import CommunityChatMessages from './community_chat_messages.model.js';
 
 CommunityForum.hasMany(Comments, { as: "Comments", foreignKey: "forum_id" });
 User.hasMany(CommunityForum, {
@@ -27,6 +28,17 @@ User.hasMany(CommunityChat, {
 CommunityChat.belongsTo(User, {
     foreignKey: "user_id",
     as: "User",
+});
+
+
+CommunityChatMessages.belongsTo(CommunityChat, {
+    foreignKey: "community_chat_id",
+    as: "CommunityChat",
+});
+
+CommunityChat.hasMany(CommunityChatMessages, {
+    foreignKey: "community_chat_id",
+    onDelete: "CASCADE",
 });
 
 export default function setupAssociations() { }
