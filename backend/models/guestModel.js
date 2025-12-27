@@ -43,6 +43,11 @@ Guest.init(
       type: DataTypes.DECIMAL(9, 6),
       allowNull: true,
     },
+    last_seen: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+
   },
   {
     sequelize,
