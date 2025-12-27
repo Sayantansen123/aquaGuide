@@ -1,19 +1,23 @@
 import express from "express";
-import { approve_or_reject_rejection_request,
-        approve_or_reject_text, get_all_guides,
-        get_text_guide,
-        get_text_guide_by_id,
-        post_text_guide,
-        approve_or_reject_for_support,
-        bulk_action_text_guides,
-        update_text_guide,
-        delete_text_guide} from "../controllers/text_guide.controller.js";
-import { adminRoute,
-        protectRoute,
-        supportOnlyRoute, 
-        supportOrAdminRoute,
-        canEditGuideMiddleware} from "../middleware/auth.middleware.js";
-
+import {
+  approve_or_reject_rejection_request,
+  approve_or_reject_text,
+  get_all_guides,
+  get_text_guide,
+  get_text_guide_by_id,
+  post_text_guide,
+  approve_or_reject_for_support,
+  bulk_action_text_guides,
+  update_text_guide,
+  delete_text_guide,
+} from "../controllers/text_guide.controller.js";
+import {
+  adminRoute,
+  protectRoute,
+  supportOnlyRoute,
+  supportOrAdminRoute,
+  canEditGuideMiddleware,
+} from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
@@ -23,8 +27,6 @@ const router = express.Router();
  *   name: TextGuide
  *   description: Routes for public, support, and admin text guide operations
  */
-
-
 
 /**
  * @swagger
@@ -44,8 +46,6 @@ const router = express.Router();
  */
 router.post("/text_guide", protectRoute, post_text_guide);
 
-
-
 /**
  * @swagger
  * /api/get_all_guides:
@@ -57,8 +57,6 @@ router.post("/text_guide", protectRoute, post_text_guide);
  *         description: List of guides
  */
 router.get("/get_all_guides", get_text_guide);
-
-
 
 /**
  * @swagger
@@ -78,7 +76,6 @@ router.get("/get_all_guides", get_text_guide);
  */
 router.get("/get_text_guide/:id", get_text_guide_by_id);
 
-
 /**
  * @swagger
  * /api/all_text_guides:
@@ -91,9 +88,12 @@ router.get("/get_text_guide/:id", get_text_guide_by_id);
  *       200:
  *         description: All guides fetched
  */
-router.get("/all_text_guides", protectRoute, supportOrAdminRoute, get_all_guides);
-
-
+router.get(
+  "/all_text_guides",
+  protectRoute,
+  supportOrAdminRoute,
+  get_all_guides
+);
 
 /**
  * @swagger
@@ -111,9 +111,12 @@ router.get("/all_text_guides", protectRoute, supportOrAdminRoute, get_all_guides
  *       200:
  *         description: Status updated
  */
-router.put("/approve_or_reject/:id", protectRoute, adminRoute, approve_or_reject_text);
-
-
+router.put(
+  "/approve_or_reject",
+  protectRoute,
+  adminRoute,
+  approve_or_reject_text
+);
 
 /**
  * @swagger
@@ -138,8 +141,6 @@ router.put(
   approve_or_reject_rejection_request
 );
 
-
-
 /**
  * @swagger
  * /api/approve_or_reject_text_guide/{id}:
@@ -163,8 +164,6 @@ router.put(
   approve_or_reject_for_support
 );
 
-
-
 /**
  * @swagger
  * /api/text_guides/bulk_action:
@@ -185,8 +184,6 @@ router.post(
   adminRoute,
   bulk_action_text_guides
 );
-
-
 
 /**
  * @swagger
@@ -213,8 +210,6 @@ router.put(
   update_text_guide
 );
 
-
-
 /**
  * @swagger
  * /api/text_guide/{id}:
@@ -231,12 +226,6 @@ router.put(
  *       200:
  *         description: Guide deleted
  */
-router.delete(
-  "/text_guide/:id",
-  protectRoute,
-  adminRoute,
-  delete_text_guide
-);
-
+router.delete("/text_guide", protectRoute, adminRoute, delete_text_guide);
 
 export default router;
