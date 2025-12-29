@@ -20,7 +20,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 const ViewForum = () => {
   const { id } = useParams<{ id: string }>();
 
-  const isAuthenticated = !!localStorage.getItem("access_token");
+  const isAuthenticated = !!localStorage.getItem("accessToken");
 
   const redirectToLogin = () => {
   navigate("/login", {
