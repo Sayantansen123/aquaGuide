@@ -199,13 +199,13 @@ export const delete_Community_forum = async (req, res) => {
 
     let deletedCount = 0;
 
-    // Admin or Support → delete any forum
-    if (user.role === "admin" || user.role === "support") {
+    // Admin → delete any forum
+    if (user.role === "admin") {
       deletedCount = await CommunityForum.destroy({
         where: { id: ids },
       });
     }
-    // Normal user → delete only own forums
+    // Normal user or Support → delete only own forums
     else {
       deletedCount = await CommunityForum.destroy({
         where: {

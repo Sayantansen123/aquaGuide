@@ -103,7 +103,6 @@ router.get("/get_community_forum_by_id/:id", get_community_form_by_id);
 router.post(
   "/add_community_forum",
   protectRoute,
-  supportOrAdminRoute,
   create_community_forum
 );
 
@@ -177,31 +176,6 @@ router.post("/add_comment/:forum_id", protectRoute, add_comment_to_forum);
 router.put("/like", protectRoute, like_community);
 
 router.put("/dislike", protectRoute, dislike_community);
-
-/**
- * @swagger
- * /api/community/comment:
- *   delete:
- *     summary: Delete your own comment
- *     tags: [Community]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               comment_id:
- *                 type: string
- *     responses:
- *       200:
- *         description: Comment deleted successfully
- *       404:
- *         description: Comment not found
- */
-router.delete("/comment", protectRoute, delete_comment);
 
 /**
  * @swagger
@@ -300,7 +274,6 @@ router.put(
 router.post(
   "/delete_community_forum",
   protectRoute,
-  adminRoute,
   delete_Community_forum
 );
 

@@ -44,7 +44,7 @@ const router = express.Router();
  *       400:
  *         description: Invalid data
  */
-router.post("/text_guide", protectRoute, post_text_guide);
+router.post("/text_guide", protectRoute, supportOrAdminRoute, post_text_guide);
 
 /**
  * @swagger
