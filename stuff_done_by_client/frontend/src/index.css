@@ -1,0 +1,155 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Pleasant Study Theme - Light Mode */
+    /* Background: Soft, cool white, easy on the eyes for long reading sessions */
+    --background: 210 29% 97%; 
+    /* Foreground: Deep slate blue, high contrast but softer than pure black */
+    --foreground: 222 47% 11%;
+
+    /* Cards: Pure white for clarity and focus */
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    /* Primary: Calming Teal/Cyan - stimulating yet focused */
+    --primary: 188 78% 38%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary: Soft Slate Blue - for supporting elements */
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+
+    /* Muted: Subtle gray-blue for de-emphasized content */
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    /* Accent: Refreshing Mint - for highlights and positive feedback */
+    --accent: 170 50% 92%;
+    --accent-foreground: 175 80% 25%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Borders: Soft, defining lines without harshness */
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 188 78% 38%;
+
+    --radius: 0.75rem;
+
+    /* Sidebar - Light Mode */
+    --sidebar-background: 210 29% 97%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 188 78% 38%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 40% 96%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 188 78% 38%;
+
+    /* Gradients: Smooth, natural transitions mimicking water */
+    --gradient-ocean: linear-gradient(
+      135deg,
+      hsl(188 78% 38%) 0%,
+      hsl(200 70% 50%) 100%
+    );
+    --gradient-coral: linear-gradient(
+      135deg,
+      hsl(14 80% 70%) 0%,
+      hsl(188 78% 38%) 100%
+    );
+    --gradient-deep: linear-gradient(
+      180deg,
+      hsl(210 29% 97%) 0%,
+      hsl(210 40% 92%) 100%
+    );
+  }
+
+  .dark {
+    /* Pleasant Study Theme - Dark Mode */
+    /* Background: Deep Navy/Slate - reduces eye strain in low light */
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+
+    --card: 222 45% 15%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 45% 15%;
+    --popover-foreground: 210 40% 98%;
+
+    /* Primary: Slightly brighter Teal for visibility against dark bg */
+    --primary: 188 70% 50%;
+    --primary-foreground: 222 47% 11%;
+
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 174 50% 20%;
+    --accent-foreground: 170 70% 90%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 188 70% 50%;
+
+    /* Sidebar - Dark Mode */
+    --sidebar-background: 222 47% 13%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 188 70% 50%;
+    --sidebar-primary-foreground: 222 47% 11%;
+    --sidebar-accent: 217 33% 17%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217 33% 17%;
+    --sidebar-ring: 188 70% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  .ocean-gradient {
+    background: var(--gradient-ocean);
+  }
+
+  .coral-gradient {
+    background: var(--gradient-coral);
+  }
+
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .dark .glass-effect {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}

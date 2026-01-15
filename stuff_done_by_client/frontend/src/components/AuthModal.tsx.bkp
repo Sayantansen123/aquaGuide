@@ -1,0 +1,192 @@
+import { useState, useEffect } from "react";
+// 1. Unified imports (removed duplicates) and added DialogTitle + DialogHeader
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogTrigger, 
+  DialogTitle, 
+  DialogHeader 
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { authApi } from "@/api/modules/auth";
+import { toast } from "sonner";
+import { setAuthData } from "@/store/userSlice";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { Eye, EyeOff, User, Lock, Mail, Calendar, UserCircle } from "lucide-react";
+import PasswordValidationPopover from "@/components/PasswordValidationPopover";
+import UsernameSuggestionPopover from "@/components/UsernameSuggestionPopover";
+
+// 2. Import VisuallyHidden
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
+
+interface AuthModalProps {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  defaultView?: "login" | "register";
+}
+
+const AuthModal = ({ isOpen, onOpenChange, defaultView = "login" }: AuthModalProps) => {
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  // ... (State and handlers remain exactly the same as your code) ...
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [registerData, setRegisterData] = useState({
+    name: "",
+    userid: "",
+    dob: "",
+    gender: "",
+    email: "",
+    password: "",
+    role: "user",
+  });
+  const [termsAccepted, setTermsAccepted] = useState<boolean>(false);
+  const [showPasswordPopover, setShowPasswordPopover] = useState(false);
+  const [passwordConfirmed, setPasswordConfirmed] = useState(false);
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
+  const [showUsernamePopover, setShowUsernamePopover] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setIsFlipped(defaultView === "register");
+    }
+  }, [isOpen, defaultView]);
+
+  const handleUsernameFocus = () => setShowUsernamePopover(registerData.userid.length > 0);
+  const handleUsernameBlur = () => setShowUsernamePopover(false);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const res = await authApi.login({ email: loginEmail, password: loginPassword });
+      dispatch(setAuthData(res.data.user));
+      toast.success("Login successful!");
+      onOpenChange(false);
+      navigate("/");
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Login failed.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await authApi.register(registerData);
+      toast.success("Registration successful! Please log in.");
+      setIsFlipped(false);
+      setLoginEmail(registerData.email);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Registration failed.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePasswordChange = (value: string) => {
+    setRegisterData({ ...registerData, password: value });
+    setPasswordConfirmed(false);
+    setShowPasswordPopover(value.length > 0);
+  };
+
+  const handlePasswordConfirm = () => {
+    setPasswordConfirmed(true);
+    setShowPasswordPopover(false);
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="bg-transparent border-none shadow-none p-0 w-auto max-w-none sm:rounded-none overflow-visible">
+        
+        {/* 3. ADDED THIS SECTION: Visually hidden title for accessibility */}
+        <VisuallyHidden.Root>
+          <DialogHeader>
+            <DialogTitle>{isFlipped ? "Register Account" : "Login to Your Account"}</DialogTitle>
+          </DialogHeader>
+        </VisuallyHidden.Root>
+
+        <div className="perspective-1000 w-[500px] h-[700px] relative">
+          <div className="relative h-full bg-card/95 backdrop-blur-xl border border-border rounded-[15px] shadow-xl text-foreground">
+            {/* ... rest of your UI code remains exactly the same ... */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 flex items-center justify-center bg-muted w-[140px] h-[70px] rounded-b-[20px] shadow-sm">
+              <span className="text-2xl font-semibold">{isFlipped ? "Register" : "Login"}</span>
+            </div>
+            
+            <div className="pt-28 p-8 h-full">
+              <div className={`relative w-full h-full transition-transform duration-700 transform-style-3d ${isFlipped ? "rotate-y-180" : ""}`}>
+                {/* Forms content goes here (Login/Register) */}
+                <div className="absolute w-full h-full backface-hidden flex items-center">
+                   {/* Login Form... */}
+                   <form onSubmit={handleLogin} className="space-y-6 w-full max-w-none mx-auto">
+                      {/* ... existing login inputs ... */}
+                      <div className="relative">
+                        <Input
+                          type="text"
+                          className="h-[55px] rounded-[30px] bg-background border border-border text-foreground px-6 pr-12 focus-visible:ring-0"
+                          placeholder="Username or Email"
+                          value={loginEmail}
+                          onChange={(e) => setLoginEmail(e.target.value)}
+                          required
+                        />
+                        <User className="absolute right-5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                      </div>
+                      <div className="relative">
+                        <Input
+                          type={showLoginPassword ? "text" : "password"}
+                          className="h-[55px] rounded-[30px] bg-background border border-border text-foreground px-6 pr-12 focus-visible:ring-0"
+                          placeholder="Password"
+                          value={loginPassword}
+                          onChange={(e) => setLoginPassword(e.target.value)}
+                          required
+                        />
+                        <button type="button" onClick={() => setShowLoginPassword(!showLoginPassword)} className="absolute right-5 top-1/2 -translate-y-1/2">
+                          {showLoginPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                        </button>
+                      </div>
+                      <Button type="submit" className="w-full h-[50px] rounded-[30px]" variant="ocean" disabled={loading}>
+                        {loading ? "Loading..." : "Login"}
+                      </Button>
+                      <div className="text-center mt-4">
+                        <span>Don't have an account? </span>
+                        <button type="button" className="font-bold hover:underline" onClick={() => setIsFlipped(true)}>Register</button>
+                      </div>
+                   </form>
+                </div>
+
+                <div className="absolute w-full h-full backface-hidden rotate-y-180 flex items-center">
+                   {/* Register Form... */}
+                   <form onSubmit={handleRegister} className="space-y-4 w-full max-w-none mx-auto">
+                      {/* ... existing register inputs ... */}
+                      <Button type="submit" className="w-full h-[50px] rounded-[30px]" variant="ocean" disabled={!termsAccepted || loading}>
+                        {loading ? "Loading..." : "Register"}
+                      </Button>
+                      <div className="text-center mt-4">
+                        <span>Already have an account? </span>
+                        <button type="button" className="font-bold hover:underline" onClick={() => setIsFlipped(false)}>Login</button>
+                      </div>
+                   </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+      {/* ... style tag ... */}
+      <style>{`.perspective-1000 { perspective: 1000px; } .transform-style-3d { transform-style: preserve-3d; } .backface-hidden { backface-visibility: hidden; } .rotate-y-180 { transform: rotateY(180deg); }`}</style>
+    </Dialog>
+  );
+};
+
+export default AuthModal;
