@@ -1,5 +1,5 @@
 import { DataTypes, Model } from "sequelize";
-
+import sequelize from "../lib/db.js";
 
 class SupportChatMessage extends Model {}
 
