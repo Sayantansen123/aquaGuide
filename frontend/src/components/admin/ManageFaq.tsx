@@ -122,19 +122,19 @@ const ManageFaq = () => {
   if (isError)
     return (
       <div className="text-red-600">
-        Failed to load guides. Please try again later.
+        Failed to load Faqs. Please try again later.
       </div>
     );
   return (
     <div className="space-y-6">
       <h1 className="text-2xl md:text-3xl font-bold text-foreground">
-        Manage Text Guides
+        Manage FAQ
       </h1>
 
       {/* Create Guide Form */}
       <Card className="border-border bg-card">
         <CardHeader>
-          <CardTitle className="text-lg">Create New Guide</CardTitle>
+          <CardTitle className="text-lg">Create New FAQ</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
