@@ -4,6 +4,9 @@ import User from "./user.model.js";
 import CommunityMember from "./community_member.model.js";
 import Community from "./community_chat.model.js";
 import CommunityMessage from "./community_chat_messages.model.js";
+import Conversation from "./conversation.model.js";
+import PersonalMessage from "./personal_message.model.js";
+import ConversationParticipant from "./conversation_participant.model.js";
 
 export default function setupAssociations() {
   console.log("🔥 setupAssociations CALLED");
@@ -82,5 +85,55 @@ export default function setupAssociations() {
   CommunityMessage.belongsTo(Community, {
     foreignKey: "community_id",
     as: "community",
+  });
+
+  // ================= PERSONAL MESSAGE ASSOCIATIONS =================
+
+  // Conversation ↔ Users (many-to-many)
+  Conversation.belongsToMany(User, {
+    through: ConversationParticipant,
+    foreignKey: "conversation_id",
+    otherKey: "user_id",
+    as: "users",
+  });
+
+  User.belongsToMany(Conversation, {
+    through: ConversationParticipant,
+    foreignKey: "user_id",
+    otherKey: "conversation_id",
+    as: "conversations",
+  });
+
+  // Conversation ↔ Participants (one-to-many)
+  Conversation.hasMany(ConversationParticipant, {
+    foreignKey: "conversation_id",
+    as: "participants",
+  });
+
+  ConversationParticipant.belongsTo(Conversation, {
+    foreignKey: "conversation_id",
+    as: "conversation",
+  });
+
+  // Participant ↔ User
+  ConversationParticipant.belongsTo(User, {
+    foreignKey: "user_id",
+    as: "user",
+  });
+
+  User.hasMany(ConversationParticipant, {
+    foreignKey: "user_id",
+    as: "participants",
+  });
+
+  // Conversation ↔ Messages
+  Conversation.hasMany(PersonalMessage, {
+    foreignKey: "conversation_id",
+    as: "messages",
+  });
+
+  PersonalMessage.belongsTo(User, {
+    foreignKey: "sender_id",
+    as: "sender",
   });
 }

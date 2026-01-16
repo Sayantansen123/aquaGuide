@@ -151,3 +151,68 @@ export const optionalProtectRoute = async (req, res, next) => {
     next();
   }
 };
+
+
+export const socketAuthMiddleware = async (socket, next) => {
+  try {
+    // ✅ 1. Get token from handshake (preferred)
+    let token =
+      socket.handshake.auth?.token ||
+      socket.handshake.headers?.authorization;
+
+    // ✅ 2. Handle "Bearer <token>"
+    if (token?.startsWith("Bearer ")) {
+      token = token.split(" ")[1];
+    }
+
+    if (!token) {
+      return next(new Error("Unauthorized - No token provided"));
+    }
+
+    // ✅ 3. Verify JWT
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    } catch (error) {
+      if (error.name === "TokenExpiredError") {
+        return next(new Error("Unauthorized - Token expired"));
+      }
+      return next(new Error("Unauthorized - Invalid token"));
+    }
+
+    // ✅ 4. Fetch user from DB (exclude password)
+    const user = await User.findByPk(decoded.userId, {
+      attributes: { exclude: ["password"] },
+    });
+
+    if (!user) {
+      return next(new Error("Unauthorized - User not found"));
+    }
+
+    // ✅ 5. Attach user to socket
+    socket.user = user;
+
+    next();
+  } catch (error) {
+    console.error("Error in socketAuthMiddleware:", error.message);
+    next(new Error("Internal server error"));
+  }
+};
+
+export const socketAdminOrSupportMiddleware = (socket, next) => {
+  try {
+    if (!socket.user) {
+      return next(new Error("Unauthorized - User not authenticated"));
+    }
+
+    if (socket.user.role !== "admin" && socket.user.role !== "support") {
+      return next(new Error("Access denied - Admin or Support only"));
+    }
+
+    next();
+  } catch (error) {
+    console.error("Error in socketAdminMiddleware:", error.message);
+    next(new Error("Internal server error"));
+  }
+};
+

@@ -36,7 +36,7 @@ export const manageUsers = async (req, res, next) => {
 
     // pagination
     const page = parseInt(req.query.page) || 1;
-    const per_page = parseInt(req.query.limit) || 3;
+    const per_page = parseInt(req.query.limit) || 12;
     const offset = (page - 1) * per_page;
 
     let queryOptions = {
@@ -304,7 +304,7 @@ export const deleteUser = async (req, res) => {
 
 export const searchUser = async (req, res) => {
   try {
-    const { query, filter = {}, page = 1, pageSize = 3 } = req.query;
+    const { query, filter = {}, page = 1, pageSize = 12 } = req.query;
 
     const currentUserId = req.user?.id;
 

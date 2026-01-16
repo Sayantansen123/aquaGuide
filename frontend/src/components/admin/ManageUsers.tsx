@@ -55,11 +55,14 @@ const ManageUsers = () => {
   if (countryCode) filters.country_code = countryCode;
   if (region) filters.region = region;
 
-  const { data, isLoading, isError } = useUsers(page, debouncedSearchQuery, filters);
+  const { data, isLoading, isError } = useUsers(
+    page,
+    debouncedSearchQuery,
+    filters
+  );
 
   const userArray: User[] = data?.users || [];
   const totalPages: number = data?.pagination?.totalPages || 1;
-
 
   const deactivateUserMutation = useMutation({
     mutationFn: authApi.deactivateUser,
@@ -118,7 +121,6 @@ const ManageUsers = () => {
     },
   });
 
-  if (isLoading) return <CircularLoader />;
   if (isError) return <p>Failed to load users</p>;
 
   const getRoleBadge = (role: string) => {
@@ -328,7 +330,7 @@ const ManageUsers = () => {
           <div className="flex gap-2 items-center">
             <input
               type="text"
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-primary"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-primary text-black"
               placeholder="Search by username, email, or name..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -408,75 +410,83 @@ const ManageUsers = () => {
 
       {/* Desktop Table View */}
       <div className="hidden md:block border border-border rounded-lg overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-muted/50">
-              <TableHead className="w-16">ID</TableHead>
-              <TableHead className="w-20 text-center">Status</TableHead>
-              <TableHead>Username</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead className="w-28">Joined</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {userArray.map((user, index) => (
-              <TableRow key={user.id}>
-                <TableCell className="font-mono text-sm">{index + 1}</TableCell>
-                <TableCell>
-                  <LiveIndicator isLive={false} />
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center">
-                    <span className="font-medium">{user.userid}</span>
-                    {user.status === "inactive"
-                      ? getRoleBadge(user.status)
-                      : getRoleBadge(user.role)}
-                  </div>
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {user.email}
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {new Date(user.createdAt).toLocaleDateString()}
-                </TableCell>
-                <TableCell>
-                  {user.status === "inactive" ? (
-                    <>
-                      <div className="flex flex-wrap gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="text-xs h-7 px-2 border-primary/50 text-primary hover:bg-primary/10"
-                          onClick={() => {
-                            activateUserMutation.mutate(user.id);
-                          }}
-                        >
-                          <Crown className="h-3 w-3 mr-1" />
-                          <span className="hidden sm:inline">Make Active</span>
-                        </Button>
-
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          className="text-xs h-7 px-2"
-                          onClick={() => {
-                            deleteUser.mutate(user.id);
-                          }}
-                        >
-                          <Trash2 className="h-3 w-3 mr-1" />
-                          <span className="hidden sm:inline">Delete</span>
-                        </Button>
-                      </div>
-                    </>
-                  ) : (
-                    <ActionButtons user={user} />
-                  )}
-                </TableCell>
+        {isLoading ? (
+          <CircularLoader />
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/50">
+                <TableHead className="w-16">ID</TableHead>
+                <TableHead className="w-20 text-center">Status</TableHead>
+                <TableHead>Username</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead className="w-28">Joined</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {userArray.map((user, index) => (
+                <TableRow key={user.id}>
+                  <TableCell className="font-mono text-sm">
+                    {index + 1}
+                  </TableCell>
+                  <TableCell>
+                    <LiveIndicator isLive={false} />
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center">
+                      <span className="font-medium">{user.userid}</span>
+                      {user.status === "inactive"
+                        ? getRoleBadge(user.status)
+                        : getRoleBadge(user.role)}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {user.email}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {new Date(user.createdAt).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>
+                    {user.status === "inactive" ? (
+                      <>
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-xs h-7 px-2 border-primary/50 text-primary hover:bg-primary/10"
+                            onClick={() => {
+                              activateUserMutation.mutate(user.id);
+                            }}
+                          >
+                            <Crown className="h-3 w-3 mr-1" />
+                            <span className="hidden sm:inline">
+                              Make Active
+                            </span>
+                          </Button>
+
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="text-xs h-7 px-2"
+                            onClick={() => {
+                              deleteUser.mutate(user.id);
+                            }}
+                          >
+                            <Trash2 className="h-3 w-3 mr-1" />
+                            <span className="hidden sm:inline">Delete</span>
+                          </Button>
+                        </div>
+                      </>
+                    ) : (
+                      <ActionButtons user={user} />
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </div>
 
       {/* Mobile Card View */}

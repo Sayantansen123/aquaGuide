@@ -1,5 +1,11 @@
 import { useMemo, useRef, useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -174,13 +180,13 @@ const ManageTextGuides = ({ placeholder }) => {
     setSelectedGuides([]);
   };
 
-  const handlePostGuide = () => {
-    if (!title.trim() || !content.trim()) return;
-    console.log(textGuide);
+  // const handlePostGuide = () => {
+  //   if (!title.trim() || !content.trim()) return;
+  //   console.log(textGuide);
 
-    setTitle("");
-    setContent("");
-  };
+  //   setTitle("");
+  //   setContent("");
+  // };
 
   const getStatusBadge = (status: TextGuide["status"]) => {
     const variants = {
@@ -434,7 +440,9 @@ const ManageTextGuides = ({ placeholder }) => {
             />
           </div>
           <DialogFooter>
-            <Button onClick={handleSaveEdit} className="w-full sm:w-auto">Save Changes</Button>
+            <Button onClick={handleSaveEdit} className="w-full sm:w-auto">
+              Save Changes
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

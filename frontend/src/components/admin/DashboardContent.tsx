@@ -29,6 +29,7 @@ import {
 import { useUserSummary } from "@/hooks/useUserSummary";
 import { UserSummaryStatsResponse } from "@/api/apiTypes";
 import CircularLoader from "../ui/CircularLoader";
+import { useHistory, useMetrices, useSummary } from "@/hooks/useMetrices";
 
 type DashboardTab = "accounts" | "server" | "content" | "database";
 
@@ -149,6 +150,9 @@ const AccountsTab = (props: {
 };
 
 const ServerTab = () => {
+  const { data: dataHistory } = useHistory();
+  const { data: dataMetrices } = useMetrices();
+  const { data: dataSumamry } = useSummary();
   const serverStats = [
     {
       label: "CPU Usage",
@@ -305,21 +309,3 @@ const DatabaseTab = () => {
     </div>
   );
 };
-
-const ManageForumContent = () => (
-  <div className="space-y-6">
-    <h1 className="text-3xl font-bold text-foreground">Manage Forum Posts</h1>
-    <p className="text-muted-foreground">
-      Moderate and manage forum discussions.
-    </p>
-  </div>
-);
-
-const ManageChatContent = () => (
-  <div className="space-y-6">
-    <h1 className="text-3xl font-bold text-foreground">Manage Chat Sessions</h1>
-    <p className="text-muted-foreground">
-      Monitor and moderate community chat sessions.
-    </p>
-  </div>
-);

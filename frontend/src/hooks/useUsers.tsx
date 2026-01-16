@@ -2,18 +2,25 @@
 import { authApi } from "@/api/modules/auth";
 import { useQuery } from "@tanstack/react-query";
 
-export const useUsers = (page: number, searchQuery: string, filters?: {
-  role?: string;
-  status?: string;
-  gender?: string;
-  country_code?: string;
-  region?: string;
-}) => {
+export const useUsers = (
+  page: number,
+  searchQuery: string,
+
+  filters?: {
+    role?: string;
+    status?: string;
+    gender?: string;
+    country_code?: string;
+    region?: string;
+  },
+  recentChat?: string
+) => {
   return useQuery({
-    queryKey: ["users", page, searchQuery, filters],
+    queryKey: ["users", page, searchQuery, filters, recentChat],
     queryFn: () => {
       if (searchQuery && searchQuery.trim() !== "") {
         return authApi.searchUsersData(page, searchQuery, filters);
+      } else if (recentChat === "user") {
       }
       // fallback: should not happen, query is mandatory
       return authApi.getUsersData(page);

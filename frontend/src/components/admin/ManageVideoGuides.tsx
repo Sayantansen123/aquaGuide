@@ -110,7 +110,7 @@ const ManageVideoGuides = () => {
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
       setSelectedVideos(videoArray.map((v) => v.id));
-      console.log(selectedVideos);
+      // console.log(selectedVideos);
     } else {
       setSelectedVideos([]);
     }
@@ -211,7 +211,12 @@ const ManageVideoGuides = () => {
       </Badge>
     );
   };
-  if (isError) return <div className="text-red-600">Failed to load guides. Please try again later.</div>;
+  if (isError)
+    return (
+      <div className="text-red-600">
+        Failed to load guides. Please try again later.
+      </div>
+    );
   if (isLoading) {
     return <CircularLoader />;
   }

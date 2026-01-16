@@ -15,8 +15,12 @@ import manageUserRoutes from "./routes/admin.manageuser.route.js";
 import speciesRoutes from "./routes/species.route.js";
 import speciesPublicRoutes from "./routes/species.public.route.js";
 import textGuideRoutes from "./routes/text_guide.route.js";
+import privateChatRoutes from "./routes/privateconversation.route.js";
 import { setupChatSocket } from "./lib/socket-handlers.js";
 import faqRoutes from "./routes/faq.route.js";
+import performanceRoutes from "./routes/performance.route.js";
+import { setupPerformanceSocket } from "./lib/performance.socket.js";
+import { setupPrivateChat } from "./lib/socket-handlers-private.js";
 
 dotenv.config();
 
@@ -46,6 +50,8 @@ app.use("/api/community", communityRoutes);
 app.use("/api/community/chat", communityChatsRoutes);
 app.use("/uploads", express.static("uploads"));
 app.use("/api/faqs", faqRoutes);
+app.use("/api/performance", performanceRoutes);
+app.use("/api/conversation/private", privateChatRoutes);
 
 app.get("/", (req, res) => {
   res.send(
@@ -59,7 +65,7 @@ const startServer = async () => {
   try {
     await sequelize.authenticate();
     console.log("PostgreSQL connected");
-    if (process.env.ENVIRONMENT == "DE") {
+    if (process.env.ENVIRONMENT == "DEV") {
       await sequelize.sync({ alter: true });
       console.log("Models synced");
     }
@@ -75,6 +81,7 @@ const startServer = async () => {
     });
 
     // Setup chat socket handlers
+    setupPerformanceSocket(io);
 
     // Default Socket.IO connection handler (for backward compatibility)
     io.on("connection", (socket) => {
@@ -86,6 +93,7 @@ const startServer = async () => {
     });
 
     setupChatSocket(io);
+    setupPrivateChat(io);
 
     server.listen(PORT, () => {
       console.log(`Server running on http://localhost:${PORT}`);

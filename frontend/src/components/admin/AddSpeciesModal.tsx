@@ -52,7 +52,7 @@ const AddSpeciesModal = ({isOpen, onClose}: AddSpeciesModalProps) => {
 	};
 
 	const handleSubmit = async () => {
-		console.log("Form Data:", formData);
+		// console.log("Form Data:", formData);
 
 		try {
 			setIsLoading(true);
@@ -91,7 +91,7 @@ const AddSpeciesModal = ({isOpen, onClose}: AddSpeciesModalProps) => {
 
 			const response = await speciesApi.addSpecies(speciesData);
 
-			console.log("Species added successfully:", response.data);
+			// console.log("Species added successfully:", response.data);
 
 			// Reset form
 			setFormData({
