@@ -9,6 +9,14 @@ SupportMember.init(
             defaultValue: DataTypes.UUIDV4,
             primaryKey: true,
         },
+        support_chat_id: {
+            type: DataTypes.UUID,
+            allowNull: false,
+            references:{
+                model: "SupportChat",
+                key: id
+            }
+        },
         user_id: {
             type: DataTypes.UUID,
             allowNull: true,
