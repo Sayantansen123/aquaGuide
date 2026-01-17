@@ -31,3 +31,5 @@ SupportMember.init(
         timestamps: true,
     }
 )
+
+export default SupportMember;

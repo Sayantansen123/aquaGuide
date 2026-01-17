@@ -9,6 +9,7 @@ import PersonalMessage from "./personal_message.model.js";
 import ConversationParticipant from "./conversation_participant.model.js";
 import SupportChatMessage from "./support_chat_message.model.js";
 import SupportChat from "./support_chat.model.js";
+import SupportMember from "./support_member.model.js";
 export default function setupAssociations() {
   console.log("🔥 setupAssociations CALLED");
   CommunityForum.hasMany(Comments, { as: "Comments", foreignKey: "forum_id" });
@@ -146,5 +147,19 @@ export default function setupAssociations() {
   SupportChatMessage.belongsTo(User,{
     foreignKey:"sender_id",
     as:"sender"
+  })
+  SupportMember.belongsTo(SupportChat,{
+    foreignKey:"support_chat_id",
+    as:"support_chat"
+  })
+  SupportMember.belongsTo(User,{
+    foreignKey:"user_id",
+    as:"user"
+  })
+  SupportChat.belongsToMany(User,{
+    through: SupportMember,
+    foreignKey:"support_chat_id",
+    otherKey:"user_id",
+    as:"members"
   })
 }
