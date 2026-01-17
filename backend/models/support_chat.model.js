@@ -11,22 +11,20 @@ SupportChat.init({
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true
   },
-  userId: {
-    type: DataTypes.UUID,
+  is_resolved: {
+    type: DataTypes.BOOLEAN,
     allowNull: false,
+    defaultValue: false
+  },
+  initiated_by: {
+    type: DataTypes.UUID,
+    allowNull: true,
+    defaultValue: false,
     references: {
       model: User,
       key: 'id'
-    }
-  },
-
-  supportId: {
-    type: DataTypes.UUID,
-    allowNull: false,
-    references: {
-        model: User,
-        key: 'id'
-    }
+    },
+    onDelete: 'SET NULL'
   },
 }, {
   sequelize,
