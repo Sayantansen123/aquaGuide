@@ -124,7 +124,7 @@ export interface rejectorapproveIds {
 }
 
 export interface getVideoResponse {
-  video: VideoArray[];
+  videos: VideoArray[];
   pagination: paginate;
 }
 
@@ -546,4 +546,45 @@ export interface CommunityStats {
 /* ---------- FAQ ---------- */
 export interface FaqStats {
   totalFaq: number;
+}
+
+
+export interface PrivateConversation {
+  id: string;
+  participant1_id: string;
+  participant2_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PrivateMessage {
+  id: string;
+  conversation_id: string;
+  sender_id: string;
+  message: string;
+  is_deleted: boolean;
+  created_at: string;
+  updated_at: string;
+  sender?: {
+    id: string;
+    name: string;
+    userid: string;
+  };
+}
+
+export interface PrivateMessagesResponse {
+  success: boolean;
+  data: PrivateMessage[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    totalItems: number;
+  };
+}
+
+export interface CreatePrivateConversationResponse {
+  success: boolean;
+  conversation: PrivateConversation;
+  message: string;
 }

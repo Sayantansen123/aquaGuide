@@ -47,7 +47,7 @@ export const get_all_guides = async (req, res) => {
 export const get_text_guide = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = 2;
+    const limit = 5;
     const offset = (page - 1) * limit;
     const { count, rows } = await TextModel.findAndCountAll({
       where: { status: "approved" },

@@ -73,7 +73,7 @@ const videos = [
 const VideoGuides = () => {
   const [page, setPage] = useState(1);
   const { data, isError, isLoading } = useVideoUsers(page);
-  const videoArray = data?.video || [];
+  const videoArray = data?.videos || [];
   const totalPages = data?.pagination?.totalPages || 1;
 
   return (

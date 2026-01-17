@@ -12,8 +12,8 @@ export const videoApi = {
       headers: { useAuth: true },
     }),
 
-  getAllVideo: () =>
-    httpClient.get<getVideoResponse>("/api/videos", {
+  getAllVideo: (page: number = 1) =>
+    httpClient.get<getVideoResponse>(`/api/videos?page=${page}`, {
       headers: { useAuth: true },
     }),
 

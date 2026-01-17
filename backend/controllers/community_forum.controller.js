@@ -34,7 +34,7 @@ export const get_community_forum = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = 20;
     const offset = (page - 1) * limit;
-        const { count, rows } = await CommunityForum.findAndCountAll({
+    const { count, rows } = await CommunityForum.findAndCountAll({
       include: [
         {
           model: Comments,
@@ -60,12 +60,12 @@ export const get_community_forum = async (req, res) => {
         ],
       },
 
-            group: ["CommunityForum.id", "User.userid", "User.id"],
-            subQuery: false,   // ensure the JOIN is included in the outer query
-            offset,
-            limit,
-            order: [["createdAt", "DESC"]]
-        });
+      group: ["CommunityForum.id", "User.userid", "User.id"],
+      subQuery: false,   // ensure the JOIN is included in the outer query
+      offset,
+      limit,
+      order: [["createdAt", "DESC"]]
+    });
     res.status(200).json({
       data: rows,
       pagination: {
@@ -85,7 +85,7 @@ export const get_community_forum = async (req, res) => {
 export const get_approved_community_forum = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = 20;
+    const limit = 5;
     const offset = (page - 1) * limit;
 
     const { count, rows } = await CommunityForum.findAndCountAll({
@@ -116,12 +116,12 @@ export const get_approved_community_forum = async (req, res) => {
         ],
       },
 
-            group: ["CommunityForum.id", "User.userid", "User.id"],
-            subQuery: false,   // ensure the JOIN is included in the outer query
-            offset,
-            limit,
-            order: [["createdAt", "DESC"]]
-        });
+      group: ["CommunityForum.id", "User.userid", "User.id"],
+      subQuery: false,   // ensure the JOIN is included in the outer query
+      offset,
+      limit,
+      order: [["createdAt", "DESC"]]
+    });
 
     res.status(200).json({
       data: rows,

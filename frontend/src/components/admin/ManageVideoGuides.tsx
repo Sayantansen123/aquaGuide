@@ -21,7 +21,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Eye, Pencil, Check, X, Trash2, Play, Youtube } from "lucide-react";
+import {
+  Eye,
+  Pencil,
+  Check,
+  X,
+  Trash2,
+  Play,
+  Youtube,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { VideoArray, VideoPayload } from "@/api/apiTypes";
 import { toast } from "sonner";
 import { videoApi } from "@/api/modules/video";
@@ -88,6 +98,10 @@ const ManageVideoGuides = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isError, setIsError] = useState<boolean>(false);
 
+  // Pagination State
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
   const extractVideoId = (url: string) => {
     const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/);
     return match ? match[1] : null;
@@ -97,15 +111,28 @@ const ManageVideoGuides = () => {
 
   useEffect(() => {
     const getVideos = async () => {
+      setIsLoading(true);
       try {
-        const res = await videoApi.getAllVideo();
-        const videoData: VideoArray[] = res?.data?.video || [];
+        const res = await videoApi.getAllVideo(page);
+        // The backend now returns { data: [], pagination: {...} }
+        // We need to cast or access it safely. Assuming the response structure updates:
+        const responseData = res?.data as any;
+        const videoData: VideoArray[] = responseData?.data || [];
+        const pagination = responseData?.pagination;
+
         setVideoArray(videoData);
-      } catch (error) {}
+        if (pagination) {
+          setTotalPages(pagination.totalPages);
+        }
+      } catch (error) {
+        setIsError(true);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     getVideos();
-  }, [callApi]);
+  }, [callApi, page]); // Depend on 'page' to refetch
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -353,8 +380,8 @@ const ManageVideoGuides = () => {
                     <TableHead className="w-12">
                       <Checkbox
                         checked={
-                          selectedVideos.length === videos.length &&
-                          videos.length > 0
+                          selectedVideos.length === videoArray.length &&
+                          videoArray.length > 0
                         }
                         onCheckedChange={handleSelectAll}
                       />
@@ -431,6 +458,41 @@ const ManageVideoGuides = () => {
                   ))}
                 </TableBody>
               </Table>
+            </div>
+          )}
+
+          {/* Pagination Controls */}
+          {videoArray.length > 0 && (
+            <div className="flex items-center justify-center gap-2 sm:gap-4 my-8">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+                disabled={page === 1}
+                className="flex items-center gap-1 sm:gap-2"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                <span className="hidden sm:inline">Previous</span>
+              </Button>
+
+              <div className="flex items-center gap-1 sm:gap-2 text-sm sm:text-base font-medium">
+                <span className="px-2 py-1 bg-primary text-primary-foreground rounded-md min-w-[2rem] text-center">
+                  {page}
+                </span>
+                <span className="text-muted-foreground">/</span>
+                <span className="text-muted-foreground">{totalPages}</span>
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={page === totalPages}
+                className="flex items-center gap-1 sm:gap-2"
+              >
+                <span className="hidden sm:inline">Next</span>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
             </div>
           )}
         </CardContent>

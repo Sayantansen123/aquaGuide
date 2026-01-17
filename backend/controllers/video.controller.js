@@ -50,15 +50,31 @@ export const createVideoGuide = async (req, res) => {
 
 export const getAllVideos = async (req, res) => {
   try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 10;
+    const offset = (page - 1) * limit;
+
     const where = req.user.isAdmin ? {} : { submittedBy: req.user.id };
-    const videos = await VideoGuide.findAll({
+
+    const { rows: videos, count: total } = await VideoGuide.findAndCountAll({
       where,
       order: [["createdAt", "DESC"]],
+      limit,
+      offset,
     });
-    res
-      .status(200)
-      .json({ message: "all video fetched successfully.", video: videos });
+
+    res.status(200).json({
+      message: "all video fetched successfully.",
+      data: videos, // Changed from 'video' to 'data' to match user's implied structure or similar structures
+      pagination: {
+        total_items: total,
+        current_page: page,
+        totalPages: Math.ceil(total / limit),
+        limit,
+      },
+    });
   } catch (err) {
+    console.error("Error fetching videos:", err);
     res.status(500).json({ message: "Error fetching videos." });
   }
 };

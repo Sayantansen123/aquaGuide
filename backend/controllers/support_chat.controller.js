@@ -18,6 +18,14 @@ export const startChat = async (req, res) => {
             user_id: support_user_id,
             is_locked: false,
         });
+        const admins = await User.findAll({ where: { role: 'admin' } });
+        for (const admin of admins) {
+            await SupportMember.create({
+                support_chat_id: newChat.id,
+                user_id: admin.id,
+                is_locked: true,
+            });
+        }
 
         res.status(201).json({ "message": "Support chat started successfully", "chat": newChat,
              "support_member": supportMember });
@@ -30,5 +38,33 @@ export const startChat = async (req, res) => {
 
 
 export const takeOver = async (req, res) =>{
-    
+    try{
+        const user = req.user;
+        const {chat_id} = req.params;
+        if(user.role !== 'admin'){
+            return res.status(403).json({ error: "Only admin members can take over support chats" });
+        }
+        const supportChat = await SupportChat.findByPk(chat_id);
+        if(!supportChat){
+            return res.status(404).json({ error: "Support chat not found" });
+        }
+        const supportMember = await SupportMember.findOne({
+            where: { support_chat_id: chat_id, user_id: user.id }
+        })
+        supportMember.is_locked = false;
+        await supportMember.save();
+        await SupportMember.update(
+            { is_locked: true },
+            { where: {
+                support_chat_id: chat_id,
+                user_id: { [Op.ne]: user.id }
+            },
+        }
+        );  
+        res.status(200).json({ message: "Support chat taken over successfully", supportMember });
+    }
+    catch (error) {
+        console.error("Error taking over support chat:", error);
+        res.status(500).json({ error: "Failed to take over support chat" });
+    }
 }

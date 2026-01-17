@@ -35,6 +35,8 @@ import { UserSummaryStatsResponse } from "@/api/apiTypes";
 import CircularLoader from "../ui/CircularLoader";
 import { useHistory, useMetrices, useSummary } from "@/hooks/useMetrices";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
+import { performanceSocket } from "@/socket/performance.socket";
+import { useEffect } from "react";
 
 type DashboardTab = "accounts" | "server" | "content" | "database";
 
@@ -51,6 +53,26 @@ export const DashboardContent = () => {
   const userSummary: UserSummaryStatsResponse = data;
   const { data: dashboardStats, isLoading: dashboardLoading } =
     useDashboardStats();
+
+  useDashboardStats();
+
+  const [serverData, setServerData] = useState<PerformanceMetrics | null>(null);
+
+  useEffect(() => {
+    // Connect to performance socket
+    performanceSocket.connect();
+
+    const handleMetrics = (data: PerformanceMetrics) => {
+      setServerData(data);
+    };
+
+    performanceSocket.on("metrics", handleMetrics);
+
+    return () => {
+      performanceSocket.off("metrics", handleMetrics);
+      performanceSocket.disconnect();
+    };
+  }, []);
 
   return (
     <div className="space-y-4">
@@ -79,7 +101,7 @@ export const DashboardContent = () => {
         {activeTab === "accounts" && (
           <AccountsTab data={userSummary} isLoading={isLoading} />
         )}
-        {activeTab === "server" && <ServerTab />}
+        {activeTab === "server" && <ServerTab data={serverData} />}
         {activeTab === "content" && (
           <ContentTab content={dashboardStats} isLoading={dashboardLoading} />
         )}
@@ -88,6 +110,53 @@ export const DashboardContent = () => {
     </div>
   );
 };
+
+// --- Types ---
+interface PerformanceMetrics {
+  timestamp: string;
+  cpu: {
+    percent: number;
+    cores: number[];
+  };
+  memory: {
+    total: number;
+    used: number;
+    percent: number;
+  };
+  disk: Array<{
+    fs: string;
+    used: number;
+    total: number;
+    percent: number;
+  }>;
+  network: {
+    iface: string;
+    operstate: string;
+    rx_bytes: number;
+    rx_dropped: number;
+    rx_errors: number;
+    tx_bytes: number;
+    tx_dropped: number;
+    tx_errors: number;
+    rx_sec: number;
+    tx_sec: number;
+    ms: number;
+  };
+  processes: {
+    total: number;
+    running: number;
+    topCpu: Array<{
+      pid: number;
+      name: string;
+      cpu: number;
+      mem: number;
+      user: string;
+      command: string;
+    }>;
+  };
+  uptime_seconds: number;
+}
+
 
 const AccountsTab = (props: {
   data: UserSummaryStatsResponse;
@@ -158,61 +227,184 @@ const AccountsTab = (props: {
   );
 };
 
-const ServerTab = () => {
-  const { data: dataHistory } = useHistory();
-  const { data: dataMetrices } = useMetrices();
-  const { data: dataSumamry } = useSummary();
+const ServerTab = ({ data }: { data: PerformanceMetrics | null }) => {
+  if (!data) {
+    return (
+      <div className="flex h-64 w-full items-center justify-center">
+        <CircularLoader />
+      </div>
+    );
+  }
+
+  const formatBytes = (bytes: number, decimals = 2) => {
+    if (!+bytes) return "0 Bytes";
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+  };
+
+  const formatUptime = (seconds: number) => {
+    if (!seconds) return "0s";
+    const d = Math.floor(seconds / (3600 * 24));
+    const h = Math.floor((seconds % (3600 * 24)) / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    return `${d}d ${h}h ${m}m`;
+  };
+
+  // Safe access to nested properties
+  const cpuPercent = data?.cpu?.percent ?? 0;
+  const cpuCores = data?.cpu?.cores ?? [];
+  const memoryPercent = data?.memory?.percent ?? 0;
+  const memoryUsed = data?.memory?.used ?? 0;
+  const memoryTotal = data?.memory?.total ?? 0;
+  const disks = data?.disk ?? [];
+  const cDrive = disks.find((d) => d?.fs === "C:") ?? disks[0]; // Fallback to first disk if C: not found
+  const networkRx = data?.network?.rx_sec ?? 0;
+  const networkTx = data?.network?.tx_sec ?? 0;
+  const topProcesses = data?.processes?.topCpu ?? [];
+
   const serverStats = [
     {
       label: "CPU Usage",
-      value: "34%",
+      value: `${cpuPercent.toFixed(1)}%`,
       icon: Cpu,
-      progress: 34,
+      progress: cpuPercent,
       color: "bg-blue-500",
+      detail: `${cpuCores.length} Cores`,
     },
     {
       label: "Memory Usage",
-      value: "62%",
+      value: `${memoryPercent.toFixed(1)}%`,
       icon: Activity,
-      progress: 62,
+      progress: memoryPercent,
       color: "bg-amber-500",
+      detail: `${formatBytes(memoryUsed)} / ${formatBytes(memoryTotal)}`,
     },
     {
-      label: "Disk Usage",
-      value: "48%",
+      label: cDrive ? `Disk Usage (${cDrive.fs})` : "Disk Usage",
+      value: cDrive ? `${cDrive.percent.toFixed(1)}%` : "0%",
       icon: HardDrive,
-      progress: 48,
+      progress: cDrive?.percent ?? 0,
       color: "bg-green-500",
+      detail: cDrive ? `${formatBytes(cDrive.used)} Used` : "0 Used",
     },
     {
       label: "Network I/O",
-      value: "1.2 GB/s",
+      value: `${formatBytes(networkRx)}/s`,
       icon: Network,
-      progress: 28,
+      progress: 0,
       color: "bg-purple-500",
+      detail: `TX: ${formatBytes(networkTx)}/s`,
     },
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-      {serverStats.map((stat) => (
-        <div
-          key={stat.label}
-          className="p-3 bg-card rounded-lg border border-border"
-        >
-          <div className="flex items-center gap-2 mb-2">
-            <stat.icon className="h-4 w-4 text-muted-foreground" />
-            <span className="text-xs text-muted-foreground">{stat.label}</span>
+    <div className="space-y-4">
+      {/* Top Stats Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {serverStats.map((stat) => (
+          <div
+            key={stat.label}
+            className="p-3 bg-card rounded-lg border border-border"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <stat.icon className="h-4 w-4 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">
+                  {stat.label}
+                </span>
+              </div>
+            </div>
+            <div className="flex items-end justify-between mb-2">
+              <p className="text-xl font-bold text-foreground">{stat.value}</p>
+              <span className="text-[10px] text-muted-foreground">
+                {stat.detail}
+              </span>
+            </div>
+            {stat.label !== "Network I/O" && (
+              <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                <div
+                  className={cn(
+                    "h-full rounded-full transition-all duration-500",
+                    stat.color
+                  )}
+                  style={{ width: `${stat.progress}%` }}
+                />
+              </div>
+            )}
+            {stat.label === "Network I/O" && (
+              <div className="flex gap-2 text-[10px] items-center text-muted-foreground">
+                <span className="flex items-center gap-1 text-green-500">
+                  ↓ {formatBytes(networkRx)}/s
+                </span>
+                <span className="flex items-center gap-1 text-blue-500">
+                  ↑ {formatBytes(networkTx)}/s
+                </span>
+              </div>
+            )}
           </div>
-          <p className="text-xl font-bold text-foreground mb-2">{stat.value}</p>
-          <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-            <div
-              className={cn("h-full rounded-full transition-all", stat.color)}
-              style={{ width: `${stat.progress}%` }}
-            />
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Top Processes */}
+        <div className="bg-card rounded-lg border border-border p-4">
+          <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
+            <Activity className="h-4 w-4" /> Top Processes
+          </h3>
+          <div className="space-y-3">
+            {topProcesses.length > 0 ? (
+              topProcesses.slice(0, 5).map((proc) => (
+                <div
+                  key={proc.pid}
+                  className="flex items-center justify-between text-xs"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-1.5 bg-muted rounded">
+                      <Zap className="h-3 w-3" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground truncate max-w-[150px]">
+                        {proc.name}
+                      </p>
+                      <p className="text-muted-foreground text-[10px]">
+                        PID: {proc.pid}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold text-foreground">
+                      {(proc.cpu ?? 0).toFixed(1)}%
+                    </p>
+                    <p className="text-muted-foreground text-[10px]">
+                      {formatBytes(proc.mem ?? 0)}
+                    </p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-xs text-muted-foreground">No process data</p>
+            )}
           </div>
         </div>
-      ))}
+
+        {/* System Info / Uptime */}
+        <div className="bg-card rounded-lg border border-border p-4">
+          <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
+            <Clock className="h-4 w-4" /> System Uptime
+          </h3>
+          <div className="flex items-center justify-center h-32 flex-col gap-2">
+            <p className="text-3xl font-bold tracking-tight text-foreground">
+              {formatUptime(data?.uptime_seconds ?? 0)}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Run time since last reboot
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
@@ -300,7 +492,7 @@ const ContentTab = ({
               className="bg-green-500 h-full"
               style={{
                 width: `${(data.species.statusCount.published /
-                    data.species.totalSpecies) *
+                  data.species.totalSpecies) *
                   100
                   }%`,
               }}
@@ -317,7 +509,7 @@ const ContentTab = ({
               className="bg-muted-foreground/50 h-full"
               style={{
                 width: `${(data.species.statusCount.archived /
-                    data.species.totalSpecies) *
+                  data.species.totalSpecies) *
                   100
                   }%`,
               }}
@@ -376,7 +568,7 @@ const ContentTab = ({
                   className="bg-green-500 h-full"
                   style={{
                     width: `${(data.video.typesOfVideo.approved /
-                        data.video.totalVideo) *
+                      data.video.totalVideo) *
                       100
                       }%`,
                   }}
@@ -385,7 +577,7 @@ const ContentTab = ({
                   className="bg-amber-500 h-full"
                   style={{
                     width: `${(data.video.typesOfVideo.pending /
-                        data.video.totalVideo) *
+                      data.video.totalVideo) *
                       100
                       }%`,
                   }}
@@ -394,7 +586,7 @@ const ContentTab = ({
                   className="bg-red-500 h-full"
                   style={{
                     width: `${(data.video.typesOfVideo.rejected /
-                        data.video.totalVideo) *
+                      data.video.totalVideo) *
                       100
                       }%`,
                   }}
@@ -455,7 +647,7 @@ const ContentTab = ({
                   className="bg-green-500 h-full"
                   style={{
                     width: `${(data.textGuide.typesOfText.approved /
-                        data.textGuide.totalText) *
+                      data.textGuide.totalText) *
                       100
                       }%`,
                   }}
@@ -464,7 +656,7 @@ const ContentTab = ({
                   className="bg-amber-500 h-full"
                   style={{
                     width: `${(data.textGuide.typesOfText.pending /
-                        data.textGuide.totalText) *
+                      data.textGuide.totalText) *
                       100
                       }%`,
                   }}
@@ -473,7 +665,7 @@ const ContentTab = ({
                   className="bg-red-500 h-full"
                   style={{
                     width: `${(data.textGuide.typesOfText.rejected /
-                        data.textGuide.totalText) *
+                      data.textGuide.totalText) *
                       100
                       }%`,
                   }}
