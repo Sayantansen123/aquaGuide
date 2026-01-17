@@ -23,33 +23,24 @@ const Navbar = () => {
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
   const role = useSelector((state: RootState) => state.user.role);
   const navigate = useNavigate();
-
-  const userid = localStorage.getItem("userid");
+  const userId = localStorage.getItem("userid") || null;
 
   useEffect(() => {
     const getRoles = async () => {
       try {
-        const res = await authApi.getRole(userid);
+        const res = await authApi.getRole(userId);
         // console.log(res?.data?.role || "user");
         dispatch(setRole(res?.data?.role || "user"));
       } catch (error) {
         return "user";
       }
     };
-    if (userid) {
+    if (userId) {
       getRoles();
     }
-  }, [userid]);
-
-  const { isLoggedIn } = useSelector((state: RootState) => state.user);
+  }, [userId]);
 
   const dispatch = useDispatch();
-
-  useEffect(() => {
-    if (localStorage.getItem("isLoggedIn") !== null) {
-      dispatch(setIsLoggedIn(localStorage.getItem("isLoggedIn")));
-    }
-  }, [isLoggedIn]);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -99,7 +90,7 @@ const Navbar = () => {
                   <Sun className="h-5 w-5" />
                 )}
               </Button>
-              {isLoggedIn ? (
+              {userId ? (
                 <div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -188,7 +179,7 @@ const Navbar = () => {
                       />
                     </div>
                     <div className="flex flex-col gap-3">
-                      {isLoggedIn === "true" ? (
+                      {userId ? (
                         <>
                           <Link to="/profile" onClick={() => setIsOpen(false)}>
                             <Button variant="ocean" className="w-full">

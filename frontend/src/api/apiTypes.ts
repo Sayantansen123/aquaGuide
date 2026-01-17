@@ -488,3 +488,62 @@ export interface AllCommunityResponse {
   data: CommunitySection[];
   count: number;
 }
+
+export interface DashboardStats {
+  species: SpeciesStats;
+  video: VideoStats;
+  forum: ForumStats;
+  textGuide: TextGuideStats;
+  community: CommunityStats;
+  faq: FaqStats;
+}
+
+/* ---------- Species ---------- */
+export interface SpeciesStats {
+  totalSpecies: number;
+  statusCount: {
+    draft: number;
+    published: number;
+    archived: number;
+  };
+}
+
+/* ---------- Video ---------- */
+export interface VideoStats {
+  totalVideo: number;
+  typesOfVideo: {
+    approved: number;
+    pending: number;
+    rejected: number;
+  };
+}
+
+/* ---------- Forum ---------- */
+export interface ForumStats {
+  totalForum: number;
+  createdByAdmin: number;
+  createdBySupport: number;
+  createdByUser: number;
+}
+
+/* ---------- Text Guide ---------- */
+export interface TextGuideStats {
+  totalText: number;
+  typesOfText: {
+    pending: number;
+    approved: number;
+    rejected: number;
+  };
+}
+
+/* ---------- Community ---------- */
+export interface CommunityStats {
+  totalCommunity: number;
+  privateCount: number;
+  publicCount: number;
+}
+
+/* ---------- FAQ ---------- */
+export interface FaqStats {
+  totalFaq: number;
+}

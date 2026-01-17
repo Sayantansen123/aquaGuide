@@ -26,7 +26,7 @@ import AdminLayout from "./components/AdminLayout";
 import AdminDashboard from "./pages/AdminDashboard";
 import { authApi } from "./api/modules/auth";
 import { useEffect } from "react";
-import { setRole } from "./store/userSlice";
+import { logout, setRole } from "./store/userSlice";
 import ViewTextGuide from "./pages/ViewTextGuide";
 import ViewFish from "./pages/ViewFish";
 import ViewForum from "./pages/ViewForum";
@@ -38,6 +38,33 @@ const App = () => {
   const userid = localStorage.getItem("userid");
   const dispatch = useDispatch();
   const role = useSelector((state: RootState) => state.user.role);
+  const accessToken = localStorage.getItem("accessToken") || null;
+  const tokenExpiry = localStorage.getItem("tokenExpiry") || null;
+
+  useEffect(() => {
+    const isTokenValid = () => {
+      if (!accessToken || !tokenExpiry) {
+        dispatch(logout());
+        return false;
+      }
+
+      const now = Date.now();
+      const expiry = Number(tokenExpiry);
+      const timeLeftMs = expiry - now;
+      const timeLeftMinutes = Math.floor(timeLeftMs / (1000 * 60));
+
+      console.log("Token time left (minutes):", timeLeftMinutes);
+
+      if (timeLeftMs <= 0) {
+        console.log("Token expired");
+        dispatch(logout());
+        return false;
+      }
+
+      return true;
+    };
+    isTokenValid();
+  }, []);
 
   useEffect(() => {
     const createGuest = async () => {
