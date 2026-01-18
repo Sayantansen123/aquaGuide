@@ -19,10 +19,10 @@ SupportChat.init({
   initiated_by: {
     type: DataTypes.UUID,
     allowNull: true,
-    defaultValue: false,
+    defaultValue: null,
     references: {
-      model: User,
-      key: 'id'
+      model: "Users",
+      key: "id",
     },
     onDelete: 'SET NULL'
   },

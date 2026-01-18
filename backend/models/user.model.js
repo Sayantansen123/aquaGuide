@@ -73,7 +73,7 @@ User.init(
     ip_address: {
       type: DataTypes.STRING,
       allowNull: true,
-      unique: true,
+      unique: false,
       validate: {
         isIP: true, // supports IPv4 & IPv6
       },

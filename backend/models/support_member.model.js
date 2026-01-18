@@ -13,8 +13,8 @@ SupportMember.init(
             type: DataTypes.UUID,
             allowNull: false,
             references:{
-                model: "SupportChat",
-                key: id
+                model: "SupportChats",
+                key: "id",
             }
         },
         user_id: {
