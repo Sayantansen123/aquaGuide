@@ -1,5 +1,7 @@
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../lib/db.js";
+import User from "./user.model.js";
+import SupportChat from "./support_chat.model.js";
 
 class SupportChatMessage extends Model {}
 
@@ -14,7 +16,7 @@ SupportChatMessage.init(
       type: DataTypes.UUID,
       allowNull: false,
       references: {
-        model: "SupportChats",
+        model: SupportChat,
         key: "id",
       },
       onDelete: "CASCADE",
@@ -23,7 +25,7 @@ SupportChatMessage.init(
       type: DataTypes.UUID,
       allowNull: false,
       references: {
-        model: "Users",
+        model: User,
         key: "id",
       },
       onDelete: "CASCADE",
@@ -36,16 +38,20 @@ SupportChatMessage.init(
       },
     },
     datestamp: {
-        type: DataTypes.DATE,
-        allowNull: false,
-        defaultValue: DataTypes.NOW,
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
     },
-    
-}, {
+  },
+  {
     sequelize,
     modelName: "SupportChatMessage",
-    tableName: "SupportChatMessages",
+    tableName: "support_chat_messages",
     timestamps: true,
-});
+    createdAt: "created_at",
+    updatedAt: "updated_at",
+    indexes: [{ fields: ["support_chat_id", "created_at"] }, { fields: ["sender_id"] }],
+  }
+);
 
 export default SupportChatMessage;

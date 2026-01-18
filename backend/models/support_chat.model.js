@@ -21,7 +21,7 @@ SupportChat.init({
     allowNull: true,
     defaultValue: null,
     references: {
-      model: "Users",
+      model: User,
       key: "id",
     },
     onDelete: 'SET NULL'
@@ -31,7 +31,8 @@ SupportChat.init({
   timestamps: true,
   createdAt: 'created_at',
   updatedAt: 'updated_at',
-  modelName: 'SupportChat'
+  modelName: 'SupportChat',
+  tableName: 'support_chats'
 });
 
 export default SupportChat;

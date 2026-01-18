@@ -1,5 +1,7 @@
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../lib/db.js";
+import User from "./user.model.js";
+import SupportChat from "./support_chat.model.js";
 
 class SupportMember extends Model {}
 SupportMember.init(
@@ -12,16 +14,17 @@ SupportMember.init(
         support_chat_id: {
             type: DataTypes.UUID,
             allowNull: false,
-            references:{
-                model: "SupportChats",
+            references: {
+                model: SupportChat,
                 key: "id",
-            }
+            },
+            onDelete: "CASCADE",
         },
         user_id: {
             type: DataTypes.UUID,
             allowNull: true,
             references: {
-                model: "Users",
+                model: User,
                 key: "id",
             },
             onDelete: "SET NULL",
@@ -35,7 +38,7 @@ SupportMember.init(
     {
         sequelize,
         modelName: "SupportMember",
-        tableName: "SupportMembers",
+        tableName: "support_members",
         timestamps: true,
     }
 )
