@@ -102,6 +102,7 @@ try {
 };
 export const acceptChat = async (req, res) => {
 try {
+        console.log("Accept chat called");
         const {chatId} = req.params;
         const user = req.user;
         if (user.role === "user") {
@@ -111,10 +112,20 @@ try {
         if (!chat) {
             return res.status(404).json({ message: "Chat not found" });
         }
-        await SupportMember.update(
-            { is_locked: false },
-            { where: { user_id: user.id, support_chat_id: chatId } }   
-        );
+        console.log("Chat found:", chat.id);
+        const supportMember = await SupportMember.findOne({
+            where: {
+                user_id: user.id,
+                support_chat_id: chat.id,
+            },
+        });
+        if (!supportMember) {
+            return res.status(403).json({ message: "You are not a member of this chat" });
+        }
+        supportMember.is_locked = false;
+        await supportMember.save();
+        console.log("Support member unlocked:", supportMember.id);
+        res.status(200).json({ success: true, message: "Chat accepted" });
 } catch (error) {
     console.error("Error accepting chat:", error.message);
     res.status(500).json({ error: "Failed to accept chat" });

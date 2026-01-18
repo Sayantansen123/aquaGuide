@@ -9,8 +9,8 @@ const router = express.Router();
 router.post("/chat/start", protectRoute, startChat);
 
 // ADMIN takes over a chat
-router.post("/chat/takeover/:chatId", adminRoute, takeoverChat);
+router.post("/chat/takeover/:chatId",protectRoute, adminRoute, takeoverChat);
 
-router.put("/accept_chat/:chatId", supportOrAdminRoute, acceptChat);
+router.put("/chat/accept_chat/:chatId",protectRoute, supportOrAdminRoute, acceptChat);
 
 export default router;
