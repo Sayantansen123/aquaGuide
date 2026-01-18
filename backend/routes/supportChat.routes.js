@@ -1,6 +1,6 @@
 import express from "express";
 import { acceptChat, startChat, takeoverChat } from "../controllers/support_chat.controller.js";
-import {protectRoute} from "../middleware/auth.middleware.js";
+import {adminRoute, protectRoute, supportOrAdminRoute} from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
@@ -9,8 +9,8 @@ const router = express.Router();
 router.post("/chat/start", protectRoute, startChat);
 
 // ADMIN takes over a chat
-router.post("/chat/takeover/:chatId", protectRoute, takeoverChat);
+router.post("/chat/takeover/:chatId", adminRoute, takeoverChat);
 
-router.put("/accept_chat/:chatId", protectRoute, acceptChat);
+router.put("/accept_chat/:chatId", supportOrAdminRoute, acceptChat);
 
 export default router;

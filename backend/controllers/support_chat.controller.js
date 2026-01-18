@@ -71,7 +71,6 @@ export const takeoverChat = async (req, res) => {
     return res.json({
       success: true,
       message: "Chat takeover successful",
-      active_handler: adminId,
     });
   } catch (err) {
     await transaction.rollback();
