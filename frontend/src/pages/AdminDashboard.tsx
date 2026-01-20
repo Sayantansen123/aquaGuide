@@ -22,6 +22,7 @@ import ManageSpecies from "@/components/admin/ManageSpecies";
 import { DashboardContent } from "@/components/admin/DashboardContent";
 import ManageCommunityForum from "@/components/admin/ManageCommunityForum";
 import ManageFaq from "@/components/admin/ManageFaq";
+import SupportChatPanel from "@/components/admin/SupportChatPanel";
 
 type TabType =
   | "dashboard"
@@ -111,7 +112,7 @@ const AdminDashboard = () => {
       case "manage-species":
         return <ManageSpecies />;
       case "manage-chat":
-        return <ManageChatContent />;
+        return <SupportChatPanel />;
       case "live-users":
         return <LiveUsersContent />;
       case "faq":
@@ -212,14 +213,7 @@ const ManageSpeciesContent = () => (
   </div>
 );
 
-const ManageChatContent = () => (
-  <div className="space-y-6">
-    <h1 className="text-3xl font-bold text-foreground">Manage Chat Sessions</h1>
-    <p className="text-muted-foreground">
-      Monitor and moderate community chat sessions.
-    </p>
-  </div>
-);
+
 
 const LiveUsersContent = () => (
   <div className="space-y-6">
