@@ -1,10 +1,15 @@
-// models/community_message.model.js
+
+/**
+ * Community Message Model
+ * Represents individual messages sent by users within a community chat.
+ * Tracks the content, sender, associated community, and timestamp/edit status.
+ */
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../lib/db.js";
 import User from "./user.model.js";
 import Community from "./community_chat.model.js";
 
-class CommunityMessage extends Model {}
+class CommunityMessage extends Model { }
 
 CommunityMessage.init(
   {

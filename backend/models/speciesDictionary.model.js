@@ -1,8 +1,13 @@
+/**
+ * Species Dictionary Model
+ * Represents a comprehensive database of fish species.
+ * Stores detailed information about care requirements, water parameters, diet, and compatibility.
+ */
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../lib/db.js";
 import User from "./user.model.js";
 
-class SpeciesDictionary extends Model {}
+class SpeciesDictionary extends Model { }
 
 SpeciesDictionary.init(
   {

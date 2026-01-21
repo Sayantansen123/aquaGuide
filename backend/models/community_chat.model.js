@@ -1,8 +1,13 @@
+/**
+ * Community Chat Model
+ * Represents a community or group chat entity where users can interact.
+ * Stores information about the community name, description, privacy level, and creator.
+ */
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../lib/db.js";
 import User from "./user.model.js";
 
-class Community extends Model {}
+class Community extends Model { }
 
 Community.init(
   {

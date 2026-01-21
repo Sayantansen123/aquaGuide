@@ -1,7 +1,12 @@
+/**
+ * Guest Model
+ * Represents an unregistered user (guest) visiting the platform.
+ * Tracks IP address, location data, and assigns a temporary guest name.
+ */
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../lib/db.js";
 
-class Guest extends Model {}
+class Guest extends Model { }
 
 Guest.init(
   {

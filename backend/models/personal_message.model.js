@@ -1,9 +1,14 @@
+/**
+ * Personal Message Model
+ * Represents a direct message sent between users in a private conversation.
+ * Stores sender, content, and associated conversation ID.
+ */
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../lib/db.js";
 import Conversation from "./conversation.model.js";
 import User from "./user.model.js";
 
-class PersonalMessage extends Model {}
+class PersonalMessage extends Model { }
 
 PersonalMessage.init(
   {

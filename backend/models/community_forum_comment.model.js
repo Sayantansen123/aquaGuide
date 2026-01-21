@@ -1,3 +1,8 @@
+/**
+ * Community Forum Comment Model
+ * Represents comments made by users on specific forum posts.
+ * Links the comment content to both the user and the forum post.
+ */
 import { DataTypes, Model } from 'sequelize';
 import sequelize from '../lib/db.js';
 import CommunityForum from './community_forum_model.js';

@@ -1,7 +1,12 @@
+/**
+ * Conversation Model
+ * Represents a unique conversation thread between users.
+ * Can be of type 'private' or 'group' and tracks the last message timestamp.
+ */
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../lib/db.js";
 
-class Conversation extends Model {}
+class Conversation extends Model { }
 
 Conversation.init(
   {

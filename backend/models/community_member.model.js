@@ -1,9 +1,14 @@
+/**
+ * Community Member Model
+ * Represents the membership association between a user and a community.
+ * A specific table to track which users are part of which communities.
+ */
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../lib/db.js";
 import User from "./user.model.js";
 import Community from "./community_chat.model.js";
 
-class CommunityMember extends Model {}
+class CommunityMember extends Model { }
 
 CommunityMember.init(
   {

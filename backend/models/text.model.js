@@ -1,8 +1,13 @@
+/**
+ * Text Guide Model
+ * Represents text-based guides or articles created by users.
+ * Includes title, content, approval status, and rejection details.
+ */
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../lib/db.js";
 import User from "./user.model.js";
 
-class TextModel extends Model {}
+class TextModel extends Model { }
 
 TextModel.init(
   {

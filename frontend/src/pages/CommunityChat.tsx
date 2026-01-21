@@ -138,31 +138,42 @@ const SidebarContent = ({
 
 						<ScrollArea className="h-[100%] mt-3">
 							<div className="space-y-1 pr-2">
-								{joinedCom.map((community) => (
-									<div
-										key={community.community_id}
-										onClick={() => {
-											setSelectedChat({
-												id: community.community_id,
-												name: community.community.name,
-												type: "community",
-											});
-											onSelectChat?.();
-										}}
-										className={`p-3 rounded-lg cursor-pointer transition-colors ${
-											selectedChat?.id === community.community_id && selectedChat?.type === "community"
-												? "bg-primary/10 border border-primary/20"
-												: "hover:bg-accent"
-										}`}>
-										<div className="flex items-center gap-2">
-											<Users className="h-4 w-4 text-primary" />
-											<span className="font-medium text-sm truncate">{community?.community?.name || "N/A"}</span>
+								{joinedCom
+									.filter((community) =>
+										community.community.name.toLowerCase().includes(communitySearch.toLowerCase())
+									)
+									.map((community) => (
+										<div
+											key={community.community_id}
+											onClick={() => {
+												setSelectedChat({
+													id: community.community_id,
+													name: community.community.name,
+													type: "community",
+												});
+												onSelectChat?.();
+											}}
+											className={`p-3 rounded-lg cursor-pointer transition-colors ${
+												selectedChat?.id === community.community_id && selectedChat?.type === "community"
+													? "bg-primary/10 border border-primary/20"
+													: "hover:bg-accent"
+											}`}>
+											<div className="flex items-center gap-2">
+												<Users className="h-4 w-4 text-primary" />
+												<span className="font-medium text-sm truncate">{community?.community?.name || "N/A"}</span>
+											</div>
+											<p className="text-xs text-muted-foreground truncate ml-6">
+												{community?.community?.description || `Welcome to ${community?.community?.name}`}
+											</p>
 										</div>
-										<p className="text-xs text-muted-foreground truncate ml-6">
-											{community?.community?.description || `Welcome to ${community?.community?.name}`}
-										</p>
+									))}
+								{joinedCom.filter((community) =>
+									community.community.name.toLowerCase().includes(communitySearch.toLowerCase())
+								).length === 0 && communitySearch && (
+									<div className="text-center py-8">
+										<p className="text-sm text-muted-foreground">No communities found</p>
 									</div>
-								))}
+								)}
 							</div>
 						</ScrollArea>
 					</div>
@@ -189,31 +200,42 @@ const SidebarContent = ({
 
 						<ScrollArea className="h-[100%] mt-3">
 							<div className="space-y-1 pr-2">
-								{allCommunity.map((community) => (
-									<div
-										key={community.id}
-										onClick={() => {
-											setSelectedChat({
-												id: community.id,
-												name: community.name,
-												type: "community",
-											});
-											onSelectChat?.();
-										}}
-										className={`p-3 rounded-lg cursor-pointer transition-colors ${
-											selectedChat?.id === community.id && selectedChat?.type === "community"
-												? "bg-primary/10 border border-primary/20"
-												: "hover:bg-accent"
-										}`}>
-										<div className="flex items-center gap-2">
-											<Users className="h-4 w-4 text-primary" />
-											<span className="font-medium text-sm truncate">{community?.name || "N/A"}</span>
+								{allCommunity
+									.filter((community) =>
+										community.name.toLowerCase().includes(communitySearch.toLowerCase())
+									)
+									.map((community) => (
+										<div
+											key={community.id}
+											onClick={() => {
+												setSelectedChat({
+													id: community.id,
+													name: community.name,
+													type: "community",
+												});
+												onSelectChat?.();
+											}}
+											className={`p-3 rounded-lg cursor-pointer transition-colors ${
+												selectedChat?.id === community.id && selectedChat?.type === "community"
+													? "bg-primary/10 border border-primary/20"
+													: "hover:bg-accent"
+											}`}>
+											<div className="flex items-center gap-2">
+												<Users className="h-4 w-4 text-primary" />
+												<span className="font-medium text-sm truncate">{community?.name || "N/A"}</span>
+											</div>
+											<p className="text-xs text-muted-foreground truncate ml-6">
+												{community?.description || `Welcome to ${community?.name}`}
+											</p>
 										</div>
-										<p className="text-xs text-muted-foreground truncate ml-6">
-											{community?.description || `Welcome to ${community?.name}`}
-										</p>
+									))}
+								{allCommunity.filter((community) =>
+									community.name.toLowerCase().includes(communitySearch.toLowerCase())
+								).length === 0 && communitySearch && (
+									<div className="text-center py-8">
+										<p className="text-sm text-muted-foreground">No communities found</p>
 									</div>
-								))}
+								)}
 							</div>
 						</ScrollArea>
 					</div>

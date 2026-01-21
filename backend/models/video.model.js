@@ -1,8 +1,13 @@
+/**
+ * Video Guide Model
+ * Represents video-based guides submitted by users (linked from YouTube).
+ * Stores video metadata like title, description, duration, and channel info.
+ */
 // models/videoGuide.model.js
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../lib/db.js";
 
-class VideoGuide extends Model {}
+class VideoGuide extends Model { }
 
 VideoGuide.init(
   {

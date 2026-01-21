@@ -1,3 +1,8 @@
+/**
+ * Community Forum Model
+ * Represents a forum post or discussion thread created by a user.
+ * Includes title, content, engagement metrics (likes/dislikes), and approval status.
+ */
 import { DataTypes, Model } from 'sequelize';
 import sequelize from '../lib/db.js';
 

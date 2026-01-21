@@ -1,3 +1,8 @@
+/**
+ * User Model
+ * Represents a registered user on the platform.
+ * Handles authentication, personal details, roles, and account status.
+ */
 import { DataTypes, Model } from "sequelize";
 import bcrypt from "bcryptjs";
 import sequelize from "../lib/db.js";

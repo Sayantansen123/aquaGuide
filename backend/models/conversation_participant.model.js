@@ -1,9 +1,14 @@
+/**
+ * Conversation Participant Model
+ * Represents a user participating in a specific conversation.
+ * Links User and Conversation models.
+ */
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../lib/db.js";
 import Conversation from "./conversation.model.js";
 import User from "./user.model.js";
 
-class ConversationParticipant extends Model {}
+class ConversationParticipant extends Model { }
 
 ConversationParticipant.init(
   {
