@@ -38,7 +38,9 @@ export const setupSupportChat = (io) => {
                     where: { support_chat_id: chatId, user_id: userId },
                 });
 
-                if (!isInitiator && !isSupportMember) {
+                console.log(`[DEBUG] Join chat ${chatId} by user ${userId}. IsInitiator: ${isInitiator}, IsSupportMember: ${!!isSupportMember}`);
+
+                if (!(isInitiator || isSupportMember)) {
                     socket.emit("support_error", { message: "Unauthorized access to chat" });
                     return;
                 }
@@ -63,11 +65,6 @@ export const setupSupportChat = (io) => {
                 const chat = await SupportChat.findByPk(chatId);
                 if (!chat) {
                     socket.emit("error", { message: "Chat not found" });
-                    return;
-                }
-
-                if (chat.is_resolved) {
-                    socket.emit("error", { message: "Chat is resolved" });
                     return;
                 }
 

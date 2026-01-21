@@ -588,3 +588,16 @@ export interface CreatePrivateConversationResponse {
   conversation: PrivateConversation;
   message: string;
 }
+
+
+export interface ChatResponse{
+    id: string;
+    initiated_by: string;
+    updated_at: string;
+    created_at: string;
+}
+
+export interface supportChatResponse{
+    success: boolean;
+    chat: ChatResponse
+}

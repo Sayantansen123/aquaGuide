@@ -5,7 +5,7 @@ import SupportChat from "./models/support_chat.model.js";
 import SupportMember from "./models/support_member.model.js";
 import jwt from "jsonwebtoken";
 
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 5000;
 const SOCKET_URL = `http://localhost:${PORT}/support`;
 
 async function testSupportChat() {

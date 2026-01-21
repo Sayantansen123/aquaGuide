@@ -11,10 +11,13 @@ SupportChat.init({
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true
   },
-  is_resolved: {
-    type: DataTypes.BOOLEAN,
+  description: { 
+    type: DataTypes.TEXT,
     allowNull: false,
-    defaultValue: false
+  },
+  is_accepted: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
   },
   initiated_by: {
     type: DataTypes.UUID,
