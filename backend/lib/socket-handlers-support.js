@@ -1,7 +1,7 @@
 import SupportChat from "../models/support_chat.model.js";
 import SupportChatMessage from "../models/support_chat_message.model.js";
 import SupportMember from "../models/support_member.model.js";
-
+import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 
 export const setupSupportChat = (io) => {
@@ -75,11 +75,21 @@ export const setupSupportChat = (io) => {
 
                 console.log(`[DEBUG] Msg from ${senderId} in chat ${chatId}. Member found: ${!!member}, Locked: ${member?.is_locked}`);
 
-                if (member && member.is_locked) {
-                    console.log(`[DEBUG] Blocking user ${senderId}. Emitting support_error to ${socket.id}`);
-                    socket.emit("support_error", { message: "Chat is locked by another agent" });
+                // fetch sender role
+                const sender = await User.findByPk(senderId);
+
+                // 🔒 Block ONLY locked SUPPORT users (not admin)
+                if (
+                    member &&
+                    member.is_locked &&
+                    sender?.role === "support"
+                ) {
+                    socket.emit("support_error", {
+                        message: "Chat is locked by an admin",
+                    });
                     return;
                 }
+
 
                 // Save message
                 const newMessage = await SupportChatMessage.create({
@@ -104,6 +114,6 @@ export const setupSupportChat = (io) => {
 
 export const emitChatResolved = (io, chatId) => {
     io.of("/support")
-      .to(`support_chat_${chatId}`)
-      .emit("support:chat_resolved", { chatId });
+        .to(`support_chat_${chatId}`)
+        .emit("support:chat_resolved", { chatId });
 };

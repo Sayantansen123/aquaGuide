@@ -44,67 +44,71 @@ export const startChat = async (req, res) => {
 
 
 export const takeoverChat = async (req, res) => {
-    const { chatId } = req.params;
-    const adminId = req.user.id;
-    const role = req.user.role;
+  const { chatId } = req.params;
+  const adminId = req.user.id;
 
-    if (role !== "admin") {
-        return res.status(403).json({ message: "Only admin can takeover chats" });
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ message: "Only admin can takeover chats" });
+  }
+
+  const transaction = await sequelize.transaction();
+
+  try {
+    const chat = await SupportChat.findByPk(chatId, { transaction });
+    if (!chat) {
+      await transaction.rollback();
+      return res.status(404).json({ message: "Chat not found" });
     }
 
-    const transaction = await sequelize.transaction();
+    // 🔒 Lock ONLY members of THIS chat
+    await SupportMember.update(
+      { is_locked: true },
+      {
+        where: { support_chat_id: chatId },
+        transaction,
+      }
+    );
 
-    try {
-        const chat = await SupportChat.findByPk(chatId, { transaction });
-        if (!chat) {
-            await transaction.rollback();
-            return res.status(404).json({ message: "Chat not found" });
-        }
+    // ✅ Ensure admin is a member OF THIS CHAT
+    const [adminMember] = await SupportMember.findOrCreate({
+      where: {
+        user_id: adminId,
+        support_chat_id: chatId,
+      },
+      defaults: {
+        is_locked: false,
+      },
+      transaction,
+    });
 
-        const member = await SupportMember.findOne({
-            where: { support_chat_id: chatId, is_locked: false },
-            transaction,
-        });
+    // 🔓 Unlock admin
+    adminMember.is_locked = false;
+    await adminMember.save({ transaction });
 
-        const user = await User.findByPk(member.user_id);
-        if (user.role === "admin") {
-            const current = await User.findByPk(adminId);
-            if (current.created_at < user.created_at) {
-                await transaction.rollback();
-                return res.status(403).json({ message: "Another admin is already active in this chat" });
-            }
-        }
+    await transaction.commit();
 
-        // Lock ALL existing support members
-        await SupportMember.update(
-            { is_locked: true },
-            { where: { support_chat_id: chatId }, transaction }
-        );
+    // 🔔 Notify clients
+    req.app
+      .get("io")
+      .of("/support")
+      .to(`support_chat_${chatId}`)
+      .emit("support:chat_taken_over", {
+        chatId,
+        by: adminId,
+        role: "admin",
+      });
 
-
-        // Ensure admin exists as SupportMember
-        const [adminMember] = await SupportMember.findOrCreate({
-            where: { user_id: adminId },
-            defaults: { is_locked: false },
-            transaction,
-        });
-
-        // Unlock admin
-        adminMember.is_locked = false;
-        await adminMember.save({ transaction });
-
-        await transaction.commit();
-
-        return res.json({
-            success: true,
-            message: "Chat takeover successful",
-        });
-    } catch (err) {
-        await transaction.rollback();
-        console.error(err);
-        return res.status(500).json({ message: "Takeover failed" });
-    }
+    return res.json({
+      success: true,
+      message: "Chat takeover successful",
+    });
+  } catch (err) {
+    await transaction.rollback();
+    console.error(err);
+    return res.status(500).json({ message: "Takeover failed" });
+  }
 };
+
 
 
 export const resolveChat = async (req, res) => {
