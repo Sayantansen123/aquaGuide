@@ -3,7 +3,7 @@ import sequelize from '../lib/db.js';
 import User from './user.model.js';
 
 
-class SupportChat extends Model {}
+class SupportChat extends Model { }
 
 SupportChat.init({
   id: {
@@ -11,7 +11,7 @@ SupportChat.init({
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true
   },
-  description: { 
+  description: {
     type: DataTypes.TEXT,
     allowNull: false,
   },
@@ -22,7 +22,6 @@ SupportChat.init({
   initiated_by: {
     type: DataTypes.UUID,
     allowNull: true,
-    defaultValue: null,
     references: {
       model: User,
       key: "id",
