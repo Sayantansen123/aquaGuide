@@ -1,5 +1,6 @@
 import sequelize from "../lib/db.js";
 import SupportChat from "../models/support_chat.model.js"
+import SupportChatMessage from "../models/support_chat_message.model.js";
 import SupportMember from "../models/support_member.model.js";
 import User from "../models/user.model.js";
 
@@ -16,10 +17,15 @@ export const startChat = async (req, res) => {
             description: description,
             is_accepted: false,
         });
-        const admins = await User.findAll({ where: { role: 'admin' } });
-        for (const admin of admins) {
+        // Add both admins and support users as SupportMembers
+        const supportStaff = await User.findAll({
+            where: {
+                role: ['admin', 'support']
+            }
+        });
+        for (const staff of supportStaff) {
             await SupportMember.create({
-                user_id: admin.id,
+                user_id: staff.id,
                 description: description,
                 support_chat_id: newChat.id,
                 is_locked: true,
@@ -178,14 +184,28 @@ export const acceptChat = async (req, res) => {
 export const getSupportChats = async (req, res) => {
     try {
         const user = req.user;
+
         const chats = await SupportChat.findAll({
             where: { is_accepted: true },
-            include: [{
-                model: SupportMember,
-                as: "supportMembers",
-                where: { user_id: user.id },
-            }],
+            include: [
+                // ✅ support agent membership (filter)
+                {
+                    model: SupportMember,
+                    as: "supportMembers",
+                    where: { user_id: user.id },
+                    attributes: ["id", "user_id", "is_locked"],
+                },
+
+                // ✅ chat initiator (THIS WAS MISSING)
+                {
+                    model: User,
+                    as: "initiator",
+                    attributes: ["id", "name", "userid"],
+                },
+            ],
+            order: [["updated_at", "DESC"]],
         });
+
         res.status(200).json({ success: true, chats });
     } catch (error) {
         console.error("Error fetching support chats:", error);
@@ -208,7 +228,7 @@ export const getSupportChatMessages = async (req, res) => {
         if (!(isInitiator || isSupportMember)) {
             return res.status(403).json({ message: "Unauthorized access to chat messages" });
         }
-        const messages = await SupportMessage.findAll({
+        const messages = await SupportChatMessage.findAll({
             where: { support_chat_id: chatId },
             order: [['created_at', 'ASC']],
         });
@@ -229,5 +249,21 @@ export const get_unaccepted_chats = async (req, res) => {
     } catch (error) {
         console.error("Error fetching unaccepted chats:", error);
         res.status(500).json({ error: "Failed to fetch unaccepted chats" });
+    }
+};
+
+
+// Get user's own support chats
+export const getUserChats = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const chats = await SupportChat.findAll({
+            where: { initiated_by: userId },
+            order: [['created_at', 'DESC']],
+        });
+        res.json({ success: true, chats });
+    } catch (error) {
+        console.error("Error fetching user chats:", error);
+        res.status(500).json({ error: "Failed to fetch user chats" });
     }
 };

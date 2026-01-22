@@ -200,4 +200,8 @@ export default function setupAssociations() {
     otherKey: "support_chat_id",
     as: "supportChats"
   })
+  SupportChat.belongsTo(User, {
+    foreignKey: "initiated_by",
+    as: "initiator",
+  });
 }
