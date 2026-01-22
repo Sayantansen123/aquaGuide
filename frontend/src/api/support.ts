@@ -15,6 +15,7 @@ export interface SupportChat {
     initiated_by: string;
     description: string;
     is_accepted: boolean;
+    status: "active" | "resolved";
     created_at: string;
     updated_at: string;
     initiator?: {
@@ -135,4 +136,13 @@ export const getMySupportChats = async () => {
         }
     );
     return response.data;
+};
+
+export const resolveSupportChat = async (chatId: string) => {
+  const response = await httpClient.put(
+    `/api/support/chat/resolve/${chatId}`,
+    {},
+    { headers: { useAuth: true } }
+  );
+  return response.data;
 };

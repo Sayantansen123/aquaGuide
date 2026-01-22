@@ -69,3 +69,11 @@ export const disconnectSupportSocket = () => {
   supportSocket.disconnect();
   supportSocket = null;
 };
+
+export const onChatResolved = (
+  callback: (payload: { chatId: string }) => void
+) => {
+  if (!supportSocket) return;
+
+  supportSocket.on("support:chat_resolved", callback);
+};

@@ -43,6 +43,7 @@ import {
   getSupportChatMessages,
   SupportChat,
   SupportChatMessage,
+  resolveSupportChat 
 } from "@/api/support";
 
 type ChatStatus = "active" | "pending" | "resolved";
@@ -76,6 +77,7 @@ const SupportChatPanel = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAccepting, setIsAccepting] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("active");
+  const [isResolving, setIsResolving] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -166,6 +168,30 @@ const SupportChatPanel = () => {
       console.error("Failed to fetch messages:", err);
     }
   };
+  const handleResolveChat = async () => {
+  if (!selectedChatId) return;
+
+  try {
+    setIsResolving(selectedChatId);
+
+    const res = await resolveSupportChat(selectedChatId);
+    if (res.success) {
+      // remove chat from active list
+      setActiveChats((prev) =>
+        prev.filter((c) => c.id !== selectedChatId)
+      );
+
+      // reset UI
+      setSelectedChatId(null);
+      setMessages([]);
+      setShowMobileChat(false);
+    }
+  } catch (err) {
+    console.error("Failed to resolve chat:", err);
+  } finally {
+    setIsResolving(null);
+  }
+};
 
   // Initial setup
   useEffect(() => {
@@ -368,7 +394,21 @@ const SupportChatPanel = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>End Chat</DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="text-red-600 focus:text-red-600"
+                          onClick={handleResolveChat}
+                          disabled={isResolving === selectedChatId}
+                        >
+                          {isResolving === selectedChatId ? (
+                            <span className="flex items-center gap-2">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Resolving…
+                            </span>
+                          ) : (
+                            "Resolve Chat"
+                          )}
+                        </DropdownMenuItem>
+
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>

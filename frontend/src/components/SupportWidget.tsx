@@ -40,10 +40,23 @@ const SupportWidget: React.FC = () => {
               new Date(a.updated_at).getTime()
           );
 
-          const mostRecent =
-            sorted.find(c => c.is_accepted) ?? sorted[0];
+          const activeChats = resp.chats.filter(
+            (c) => c.status === "active"
+          );
 
-          setChatId(mostRecent.id);
+          if (activeChats.length > 0) {
+            const mostRecent = [...activeChats].sort(
+              (a, b) =>
+                new Date(b.updated_at).getTime() -
+                new Date(a.updated_at).getTime()
+            )[0];
+
+            setChatId(mostRecent.id);
+          } else {
+            // no active chat → show "start chat" UI
+            setChatId(null);
+          }
+
         }
 
       } catch (err) {

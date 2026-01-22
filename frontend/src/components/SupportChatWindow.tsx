@@ -18,6 +18,7 @@ import {
     sendSupportMessage,
     onSupportMessage,
     disconnectSupportSocket,
+    onChatResolved
 } from "@/socket/supportSocket";
 import { getSupportChatMessages, SupportChatMessage } from "@/api/support";
 
@@ -45,6 +46,7 @@ const SupportChatWindow: React.FC<SupportChatWindowProps> = ({
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
+    const [isResolved, setIsResolved] = useState(false);
 
     // Scroll to bottom of messages
     useEffect(() => {
@@ -55,57 +57,93 @@ const SupportChatWindow: React.FC<SupportChatWindowProps> = ({
     useEffect(() => {
         if (!accessToken || !chatId) return;
 
-        const socket = connectSupportSocket(accessToken);
+        let isMounted = true;
 
-        // Join the chat room
-        joinSupportChat(chatId, userId);
-
-        // Listen for new messages
-        onSupportMessage((msg: SupportChatMessage) => {
-            const newMsg: DisplayMessage = {
-                id: msg.id,
-                text: msg.message,
-                sender: msg.sender_id === userId ? "user" : "support",
-                timestamp: new Date(msg.created_at),
-            };
-            setMessages((prev) => [...prev, newMsg]);
-        });
-
-        // Fetch existing messages
-        const fetchMessages = async () => {
+        const init = async () => {
             try {
                 setIsLoading(true);
+
+                // 🔴 FETCH CHAT MESSAGES FIRST
                 const response = await getSupportChatMessages(chatId);
+
+                if (!isMounted) return;
+
+                // ✅ NO MESSAGES IS VALID — STOP LOADING
                 if (response.success && response.messages) {
-                    const formattedMessages = response.messages.map((msg) => ({
+                    const formatted = response.messages.map((msg) => ({
                         id: msg.id,
                         text: msg.message,
                         sender: msg.sender_id === userId ? "user" : "support",
                         timestamp: new Date(msg.created_at),
-                    })) as DisplayMessage[];
-                    setMessages(formattedMessages);
+                    }));
+
+                    setMessages(formatted);
                 }
+
+                setIsLoading(false);
+
+                // 🔴 NOW connect socket AFTER loading
+                const socket =  connectSupportSocket(accessToken);
+                joinSupportChat(chatId, userId);
+
+                onSupportMessage((msg: SupportChatMessage) => {
+                    setMessages((prev) => [
+                        ...prev,
+                        {
+                            id: msg.id,
+                            text: msg.message,
+                            sender: msg.sender_id === userId ? "user" : "support",
+                            timestamp: new Date(msg.created_at),
+                        },
+                    ]);
+                });
+                onChatResolved(({ chatId: resolvedId }) => {
+                if (resolvedId !== chatId) return;
+
+                console.log("[SupportChatWindow] Chat resolved");
+
+                setIsResolved(true);
+                setIsLoading(false);
+
+                // optional system message
+                setMessages((prev) => [
+                    ...prev,
+                    {
+                    id: "resolved",
+                    text: "Support has resolved this chat.",
+                    sender: "support",
+                    timestamp: new Date(),
+                    },
+                ]);
+
+                disconnectSupportSocket();
+                });
+
+
             } catch (err) {
-                console.error("Failed to fetch messages:", err);
+                console.error("Failed to init chat:", err);
                 setError("Failed to load messages");
-            } finally {
                 setIsLoading(false);
             }
         };
 
-        fetchMessages();
+        init();
 
         return () => {
+            isMounted = false;
             disconnectSupportSocket();
         };
     }, [chatId, accessToken, userId]);
 
+
     const handleSend = () => {
+        if (isResolved) return;
         if (!inputVal.trim() || !chatId) return;
 
         sendSupportMessage(chatId, userId, inputVal);
         setInputVal("");
     };
+
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "Enter") {
@@ -205,31 +243,38 @@ const SupportChatWindow: React.FC<SupportChatWindowProps> = ({
             </CardContent>
 
             <CardFooter className="p-3 bg-background border-t pt-3">
-                <form
-                    className="flex w-full items-center gap-2"
-                    onSubmit={(e) => {
-                        e.preventDefault();
-                        handleSend();
-                    }}
-                >
-                    <Input
-                        placeholder="Type a message..."
-                        value={inputVal}
-                        onChange={(e) => setInputVal(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        className="flex-1 focus-visible:ring-1 bg-muted/50 border-0 focus-visible:ring-primary/20"
-                        autoFocus
-                    />
-                    <Button
-                        size="icon"
-                        type="submit"
-                        className="h-10 w-10 shrink-0 rounded-full shadow-sm"
-                        disabled={!inputVal.trim()}
+                {isResolved ? (
+                    <div className="w-full text-center text-sm text-muted-foreground">
+                        This chat has been resolved by support.
+                    </div>
+                ) : (
+                    <form
+                        className="flex w-full items-center gap-2"
+                        onSubmit={(e) => {
+                            e.preventDefault();
+                            handleSend();
+                        }}
                     >
-                        <Send className="h-4 w-4" />
-                    </Button>
-                </form>
+                        <Input
+                            placeholder="Type a message..."
+                            value={inputVal}
+                            onChange={(e) => setInputVal(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            className="flex-1 focus-visible:ring-1 bg-muted/50 border-0 focus-visible:ring-primary/20"
+                            autoFocus
+                        />
+                        <Button
+                            size="icon"
+                            type="submit"
+                            className="h-10 w-10 shrink-0 rounded-full shadow-sm"
+                            disabled={!inputVal.trim()}
+                        >
+                            <Send className="h-4 w-4" />
+                        </Button>
+                    </form>
+                )}
             </CardFooter>
+
         </Card>
     );
 };
