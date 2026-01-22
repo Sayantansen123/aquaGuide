@@ -34,6 +34,7 @@ import {
   sendSupportMessage,
   onSupportMessage,
   disconnectSupportSocket,
+  onChatTakenOver,
 } from "@/socket/supportSocket";
 
 import {
@@ -43,7 +44,8 @@ import {
   getSupportChatMessages,
   SupportChat,
   SupportChatMessage,
-  resolveSupportChat 
+  resolveSupportChat,
+  takeoverSupportChat,
 } from "@/api/support";
 
 type ChatStatus = "active" | "pending" | "resolved";
@@ -78,6 +80,9 @@ const SupportChatPanel = () => {
   const [isAccepting, setIsAccepting] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("active");
   const [isResolving, setIsResolving] = useState<string | null>(null);
+  const [isLocked, setIsLocked] = useState(false);
+  const [lockMessage, setLockMessage] = useState<string | null>(null);
+  const [isTakingOver, setIsTakingOver] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -169,35 +174,48 @@ const SupportChatPanel = () => {
     }
   };
   const handleResolveChat = async () => {
-  if (!selectedChatId) return;
+    if (!selectedChatId) return;
 
-  try {
-    setIsResolving(selectedChatId);
+    try {
+      setIsResolving(selectedChatId);
 
-    const res = await resolveSupportChat(selectedChatId);
-    if (res.success) {
-      // remove chat from active list
-      setActiveChats((prev) =>
-        prev.filter((c) => c.id !== selectedChatId)
-      );
+      const res = await resolveSupportChat(selectedChatId);
+      if (res.success) {
+        // remove chat from active list
+        setActiveChats((prev) =>
+          prev.filter((c) => c.id !== selectedChatId)
+        );
 
-      // reset UI
-      setSelectedChatId(null);
-      setMessages([]);
-      setShowMobileChat(false);
+        // reset UI
+        setSelectedChatId(null);
+        setMessages([]);
+        setShowMobileChat(false);
+      }
+    } catch (err) {
+      console.error("Failed to resolve chat:", err);
+    } finally {
+      setIsResolving(null);
     }
-  } catch (err) {
-    console.error("Failed to resolve chat:", err);
-  } finally {
-    setIsResolving(null);
-  }
-};
+  };
+  const handleTakeoverChat = async () => {
+    if (!selectedChatId) return;
+
+    try {
+      setIsTakingOver(true);
+      await takeoverSupportChat(selectedChatId);
+      // socket event will handle locking others
+    } catch (err) {
+      console.error("Failed to takeover chat:", err);
+    } finally {
+      setIsTakingOver(false);
+    }
+  };
 
   // Initial setup
   useEffect(() => {
     if (!accessToken) return;
 
-    connectSupportSocket(accessToken);
+    const socket = connectSupportSocket(accessToken);
     fetchChats();
 
     onSupportMessage((msg: SupportChatMessage) => {
@@ -215,6 +233,21 @@ const SupportChatPanel = () => {
       ]);
     });
 
+    // ✅ HANDLE TAKEOVER
+    onChatTakenOver(({ chatId, by }) => {
+      if (chatId !== selectedChatId) return;
+
+      if (by !== userId) {
+        setIsLocked(true);
+        setLockMessage("This chat has been taken over by an admin.");
+      } else {
+        // admin who took over
+        setIsLocked(false);
+        setLockMessage(null);
+      }
+    });
+
+
     return () => {
       disconnectSupportSocket();
     };
@@ -225,9 +258,13 @@ const SupportChatPanel = () => {
     if (!selectedChatId || !userId) return;
 
     setMessages([]);
+    setIsLocked(false);        // ✅ RESET
+    setLockMessage(null);      // ✅ RESET
+
     joinSupportChat(selectedChatId, userId);
     fetchMessages(selectedChatId);
   }, [selectedChatId, userId]);
+
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -235,11 +272,13 @@ const SupportChatPanel = () => {
   }, [messages]);
 
   const handleSend = () => {
+    if (isLocked) return;      // ✅ ADD
     if (!inputVal.trim() || !selectedChatId) return;
 
     sendSupportMessage(selectedChatId, userId, inputVal);
     setInputVal("");
   };
+
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") handleSend();
@@ -394,6 +433,22 @@ const SupportChatPanel = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+
+                        {/* ✅ TAKEOVER BUTTON (ADMIN ONLY) */}
+                        <DropdownMenuItem
+                          onClick={handleTakeoverChat}
+                          disabled={isTakingOver}
+                        >
+                          {isTakingOver ? (
+                            <span className="flex items-center gap-2">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Taking over…
+                            </span>
+                          ) : (
+                            "Take over chat"
+                          )}
+                        </DropdownMenuItem>
+
                         <DropdownMenuItem
                           className="text-red-600 focus:text-red-600"
                           onClick={handleResolveChat}
@@ -410,6 +465,7 @@ const SupportChatPanel = () => {
                         </DropdownMenuItem>
 
                       </DropdownMenuContent>
+
                     </DropdownMenu>
                   </div>
                 </div>
@@ -452,18 +508,25 @@ const SupportChatPanel = () => {
                 </ScrollArea>
 
                 <div className="p-4 border-t">
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="Type your reply..."
-                      value={inputVal}
-                      onChange={(e) => setInputVal(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                    />
-                    <Button onClick={handleSend} size="icon">
-                      <Send className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  {isLocked ? (
+                    <div className="w-full text-center text-sm text-muted-foreground">
+                      {lockMessage}
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Type your reply..."
+                        value={inputVal}
+                        onChange={(e) => setInputVal(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                      />
+                      <Button onClick={handleSend} size="icon">
+                        <Send className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
+
               </>
             ) : (
               <div className="flex-1 flex items-center justify-center text-muted-foreground">

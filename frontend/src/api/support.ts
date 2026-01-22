@@ -146,3 +146,14 @@ export const resolveSupportChat = async (chatId: string) => {
   );
   return response.data;
 };
+
+export const takeoverSupportChat = async (chatId: string) => {
+  const res = await httpClient.post(
+    `/api/support/chat/takeover/${chatId}`,
+    {},
+    {
+      headers: { useAuth: true },
+    }
+  );
+  return res.data;
+};
