@@ -3,6 +3,7 @@ import SupportChat from "../models/support_chat.model.js"
 import SupportChatMessage from "../models/support_chat_message.model.js";
 import SupportMember from "../models/support_member.model.js";
 import User from "../models/user.model.js";
+import { emitChatResolved } from "../lib/socket-handlers-support.js";
 
 export const startChat = async (req, res) => {
     try {
@@ -16,6 +17,7 @@ export const startChat = async (req, res) => {
             initiated_by: user.id,
             description: description,
             is_accepted: false,
+            status: "active",
         });
         // Add both admins and support users as SupportMembers
         const supportStaff = await User.findAll({
@@ -76,8 +78,9 @@ export const takeoverChat = async (req, res) => {
         // Lock ALL existing support members
         await SupportMember.update(
             { is_locked: true },
-            { where: {}, transaction }
+            { where: { support_chat_id: chatId }, transaction }
         );
+
 
         // Ensure admin exists as SupportMember
         const [adminMember] = await SupportMember.findOrCreate({
@@ -105,24 +108,38 @@ export const takeoverChat = async (req, res) => {
 
 
 export const resolveChat = async (req, res) => {
-    try {
-        const { chatId } = req.params;
-        const role = req.user.role;
+  try {
+    const { chatId } = req.params;
+    const role = req.user.role;
 
-        if (role !== "user") {
-            return res.status(403).json({ message: "Only users can resolve chats" });
-        }
-        const chat = await SupportChat.findByPk(chatId);
-        if (!chat) {
-            return res.status(404).json({ message: "Chat not found" });
-        }
-        await chat.destroy();
-        return res.json({ success: true, message: "Chat resolved" });
-    } catch (error) {
-        console.error("Error resolving chat:", error.message);
-        res.status(500).json({ error: "Failed to resolve chat" });
+    // ✅ only admin & support can resolve
+    if (!["admin", "support"].includes(role)) {
+      return res.status(403).json({
+        message: "Only admin or support can resolve chats",
+      });
     }
+
+    const chat = await SupportChat.findByPk(chatId);
+    if (!chat) {
+      return res.status(404).json({ message: "Chat not found" });
+    }
+
+    // ✅ soft-resolve instead of delete
+    await chat.update({ status: "resolved" });
+
+    // 🔔 notify all connected users
+    emitChatResolved(req.app.get("io"), chatId);
+
+    return res.json({
+        success: true,
+        message: "Chat resolved successfully",
+    });
+  } catch (error) {
+    console.error("Error resolving chat:", error);
+    res.status(500).json({ error: "Failed to resolve chat" });
+  }
 };
+
 
 
 export const acceptChat = async (req, res) => {
@@ -137,6 +154,10 @@ export const acceptChat = async (req, res) => {
         if (!chat) {
             return res.status(404).json({ message: "Chat not found" });
         }
+        if (chat.status === "resolved") {
+            return res.status(400).json({ message: "Cannot accept a resolved chat" });
+        }
+
         console.log("Chat found:", chat.id);
         if (chat.is_accepted) {
             return res.status(400).json({ message: "Chat already accepted" });
@@ -182,35 +203,35 @@ export const acceptChat = async (req, res) => {
 
 
 export const getSupportChats = async (req, res) => {
-    try {
-        const user = req.user;
+  try {
+    const user = req.user;
 
-        const chats = await SupportChat.findAll({
-            where: { is_accepted: true },
-            include: [
-                // ✅ support agent membership (filter)
-                {
-                    model: SupportMember,
-                    as: "supportMembers",
-                    where: { user_id: user.id },
-                    attributes: ["id", "user_id", "is_locked"],
-                },
+    const chats = await SupportChat.findAll({
+      where: {
+        is_accepted: true,
+        status: "active", // ✅ belongs to SupportChat
+      },
+      include: [
+        {
+          model: SupportMember,
+          as: "supportMembers",
+          where: { user_id: user.id }, // ✅ only membership filter
+          attributes: ["id", "user_id", "is_locked"],
+        },
+        {
+          model: User,
+          as: "initiator",
+          attributes: ["id", "name", "userid"],
+        },
+      ],
+      order: [["updated_at", "DESC"]],
+    });
 
-                // ✅ chat initiator (THIS WAS MISSING)
-                {
-                    model: User,
-                    as: "initiator",
-                    attributes: ["id", "name", "userid"],
-                },
-            ],
-            order: [["updated_at", "DESC"]],
-        });
-
-        res.status(200).json({ success: true, chats });
-    } catch (error) {
-        console.error("Error fetching support chats:", error);
-        res.status(500).json({ error: "Failed to fetch support chats" });
-    }
+    res.status(200).json({ success: true, chats });
+  } catch (error) {
+    console.error("Error fetching support chats:", error);
+    res.status(500).json({ error: "Failed to fetch support chats" });
+  }
 };
 
 export const getSupportChatMessages = async (req, res) => {
@@ -243,7 +264,11 @@ export const getSupportChatMessages = async (req, res) => {
 export const get_unaccepted_chats = async (req, res) => {
     try {
         const unacceptedChats = await SupportChat.findAll({
-            where: { is_accepted: false },
+            where: {
+                is_accepted: false,
+                status: "active",
+            },
+
         });
         res.json({ success: true, chats: unacceptedChats });
     } catch (error) {

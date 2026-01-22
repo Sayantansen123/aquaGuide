@@ -101,3 +101,9 @@ export const setupSupportChat = (io) => {
         });
     });
 };
+
+export const emitChatResolved = (io, chatId) => {
+    io.of("/support")
+      .to(`support_chat_${chatId}`)
+      .emit("support:chat_resolved", { chatId });
+};

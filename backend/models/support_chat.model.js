@@ -19,6 +19,10 @@ SupportChat.init({
     type: DataTypes.BOOLEAN,
     defaultValue: false,
   },
+  status: {
+    type: DataTypes.ENUM("active", "resolved"),
+    defaultValue: "active",
+  },
   initiated_by: {
     type: DataTypes.UUID,
     allowNull: true,

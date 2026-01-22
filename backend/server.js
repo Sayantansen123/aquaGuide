@@ -80,7 +80,7 @@ const startServer = async () => {
       },
       transports: ["websocket", "polling"],
     });
-
+    app.set("io", io);
     // Setup chat socket handlers
     setupPerformanceSocket(io);
 

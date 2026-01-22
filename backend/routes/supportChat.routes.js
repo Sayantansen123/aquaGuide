@@ -1,5 +1,5 @@
 import express from "express";
-import { acceptChat, startChat, takeoverChat, getSupportChats, getSupportChatMessages, get_unaccepted_chats, getUserChats } from "../controllers/support_chat.controller.js";
+import { acceptChat, startChat, takeoverChat, getSupportChats, getSupportChatMessages, get_unaccepted_chats,resolveChat, getUserChats } from "../controllers/support_chat.controller.js";
 import { adminRoute, protectRoute, supportOrAdminRoute } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
@@ -20,5 +20,7 @@ router.get("/chat/get_new_requests", protectRoute, supportOrAdminRoute, get_unac
 router.get("/chats/messages/:chatId", protectRoute, getSupportChatMessages);
 
 router.get("/chats/my_chats", protectRoute, getUserChats)
+
+router.put("/chat/resolve/:chatId", protectRoute,resolveChat);
 
 export default router;
