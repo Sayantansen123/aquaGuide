@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import Navbar from "./Navbar";
 import SecondaryNav from "./SecondaryNav";
 import Footer from "./Footer";
-import SupportChat from "./SupportChat";
+import SupportWidget from "./SupportWidget";
 
 interface LayoutProps {
   children: ReactNode;
@@ -16,9 +16,10 @@ const Layout = ({ children }: LayoutProps) => {
       <div className="h-[40px]"></div>
       <main className="flex-1">{children}</main>
       <Footer />
-      <SupportChat />
+      <SupportWidget />
     </div>
   );
 };
 
 export default Layout;
+

@@ -5,8 +5,9 @@ import {
   MoreVertical,
   Phone,
   Video,
-  CheckCheck,
   ArrowLeft,
+  Check,
+  Loader2,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 
 import {
@@ -34,11 +36,21 @@ import {
   disconnectSupportSocket,
 } from "@/socket/supportSocket";
 
+import {
+  getSupportChats,
+  getUnacceptedChats,
+  acceptSupportChat,
+  getSupportChatMessages,
+  SupportChat,
+  SupportChatMessage,
+} from "@/api/support";
+
 type ChatStatus = "active" | "pending" | "resolved";
 
 interface ChatSession {
   id: string;
   user: string;
+  description: string;
   avatar?: string;
   online: boolean;
   status: ChatStatus;
@@ -55,29 +67,121 @@ const SupportChatPanel = () => {
   const userId = localStorage.getItem("id") || "";
   const accessToken = localStorage.getItem("accessToken") || "";
 
-  const [chats, setChats] = useState<ChatSession[]>([]);
+  const [activeChats, setActiveChats] = useState<ChatSession[]>([]);
+  const [pendingChats, setPendingChats] = useState<ChatSession[]>([]);
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputVal, setInputVal] = useState("");
   const [showMobileChat, setShowMobileChat] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAccepting, setIsAccepting] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("active");
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
-  const selectedChat = chats.find((c) => c.id === selectedChatId);
+  const allChats = activeTab === "active" ? activeChats : pendingChats;
+  const selectedChat = [...activeChats, ...pendingChats].find(
+    (c) => c.id === selectedChatId
+  );
 
+  // Convert API response to ChatSession format
+  const mapToChatSession = (
+    chat: SupportChat,
+    status: ChatStatus
+  ): ChatSession => ({
+    id: chat.id,
+    user: chat.initiator?.name?.trim() ||
+      chat.initiator?.userid?.trim() ||
+      "Unknown User",
+    description: chat.description || "",
+    online: true,
+    status,
+  });
+
+  // Fetch chats from API
+  const fetchChats = async () => {
+    try {
+      setIsLoading(true);
+      const [activeRes, pendingRes] = await Promise.all([
+        getSupportChats(),
+        getUnacceptedChats(),
+      ]);
+
+      if (activeRes.success) {
+        setActiveChats(
+          activeRes.chats.map((c) => mapToChatSession(c, "active"))
+        );
+      }
+      if (pendingRes.success) {
+        setPendingChats(
+          pendingRes.chats.map((c) => mapToChatSession(c, "pending"))
+        );
+      }
+    } catch (err) {
+      console.error("Failed to fetch chats:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Accept a pending chat
+  const handleAccept = async (chatId: string) => {
+    try {
+      setIsAccepting(chatId);
+      const res = await acceptSupportChat(chatId);
+      if (res.success) {
+        // Move chat from pending to active
+        const chat = pendingChats.find((c) => c.id === chatId);
+        if (chat) {
+          setPendingChats((prev) => prev.filter((c) => c.id !== chatId));
+          setActiveChats((prev) => [...prev, { ...chat, status: "active" }]);
+        }
+        setActiveTab("active");
+        setSelectedChatId(chatId);
+      }
+    } catch (err) {
+      console.error("Failed to accept chat:", err);
+    } finally {
+      setIsAccepting(null);
+    }
+  };
+
+  // Fetch messages for selected chat
+  const fetchMessages = async (chatId: string) => {
+    try {
+      const res = await getSupportChatMessages(chatId);
+      if (res.success && res.messages) {
+        const formattedMessages = res.messages.map((msg) => ({
+          id: msg.id,
+          sender: msg.sender_id === userId ? "admin" : "user",
+          text: msg.message,
+          time: new Date(msg.created_at).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        })) as Message[];
+        setMessages(formattedMessages);
+      }
+    } catch (err) {
+      console.error("Failed to fetch messages:", err);
+    }
+  };
+
+  // Initial setup
   useEffect(() => {
     if (!accessToken) return;
 
     connectSupportSocket(accessToken);
+    fetchChats();
 
-    onSupportMessage((msg) => {
+    onSupportMessage((msg: SupportChatMessage) => {
       setMessages((prev) => [
         ...prev,
         {
           id: msg.id,
           sender: msg.sender_id === userId ? "admin" : "user",
           text: msg.message,
-          time: new Date(msg.createdAt).toLocaleTimeString([], {
+          time: new Date(msg.created_at).toLocaleTimeString([], {
             hour: "2-digit",
             minute: "2-digit",
           }),
@@ -88,15 +192,18 @@ const SupportChatPanel = () => {
     return () => {
       disconnectSupportSocket();
     };
-  }, []);
+  }, [accessToken]);
 
+  // Join chat room when selected
   useEffect(() => {
     if (!selectedChatId || !userId) return;
 
     setMessages([]);
     joinSupportChat(selectedChatId, userId);
-  }, [selectedChatId]);
+    fetchMessages(selectedChatId);
+  }, [selectedChatId, userId]);
 
+  // Auto-scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
   }, [messages]);
@@ -121,7 +228,7 @@ const SupportChatPanel = () => {
           maxSize={40}
           className={cn(showMobileChat ? "hidden md:flex" : "flex")}
         >
-          <div className="h-full flex flex-col border-r bg-muted/10">
+          <div className="h-full flex flex-col border-r bg-muted/10 w-full">
             <div className="p-4 border-b">
               <div className="relative">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -129,39 +236,91 @@ const SupportChatPanel = () => {
               </div>
             </div>
 
-            <ScrollArea className="flex-1">
-              <div className="flex flex-col p-2 gap-1">
-                {chats.map((chat) => (
-                  <button
-                    key={chat.id}
-                    onClick={() => {
-                      setSelectedChatId(chat.id);
-                      setShowMobileChat(true);
-                    }}
-                    className={cn(
-                      "flex items-center gap-3 p-3 rounded-lg text-left transition-colors",
-                      selectedChatId === chat.id
-                        ? "bg-primary/10"
-                        : "hover:bg-muted"
-                    )}
-                  >
-                    <Avatar>
-                      <AvatarImage src={chat.avatar} />
-                      <AvatarFallback>{chat.user[0]}</AvatarFallback>
-                    </Avatar>
+            <Tabs
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className="flex-1 flex flex-col"
+            >
+              <TabsList className="mx-4 mt-2">
+                <TabsTrigger value="active" className="flex-1">
+                  Active ({activeChats.length})
+                </TabsTrigger>
+                <TabsTrigger value="pending" className="flex-1">
+                  Pending ({pendingChats.length})
+                </TabsTrigger>
+              </TabsList>
 
-                    <div className="flex-1">
-                      <span className="font-medium text-sm">{chat.user}</span>
-                      {chat.status === "pending" && (
-                        <Badge variant="secondary" className="ml-2 text-xs">
-                          New
-                        </Badge>
-                      )}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </ScrollArea>
+              <ScrollArea className="flex-1 mt-2">
+                {isLoading ? (
+                  <div className="flex items-center justify-center p-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                  </div>
+                ) : (
+                  <div className="flex flex-col p-2 gap-1">
+                    {allChats.length === 0 ? (
+                      <div className="text-center text-muted-foreground text-sm p-4">
+                        {activeTab === "active"
+                          ? "No active chats"
+                          : "No pending requests"}
+                      </div>
+                    ) : (
+                      allChats.map((chat) => (
+                        <div
+                          key={chat.id}
+                          className={cn(
+                            "flex items-center gap-3 p-3 rounded-lg text-left transition-colors cursor-pointer",
+                            selectedChatId === chat.id
+                              ? "bg-primary/10"
+                              : "hover:bg-muted"
+                          )}
+                          onClick={() => {
+                            if (chat.status === "active") {
+                              setSelectedChatId(chat.id);
+                              setShowMobileChat(true);
+                            }
+                          }}
+                        >
+                          <Avatar>
+                            <AvatarImage src={chat.avatar} />
+                            <AvatarFallback>{chat.user[0]}</AvatarFallback>
+                          </Avatar>
+
+                          <div className="flex-1 min-w-0">
+                            <span className="font-medium text-sm block truncate">
+                              {chat.user}
+                            </span>
+                            <span className="text-xs text-muted-foreground truncate block">
+                              {chat.description}
+                            </span>
+                          </div>
+
+                          {chat.status === "pending" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleAccept(chat.id);
+                              }}
+                              disabled={isAccepting === chat.id}
+                            >
+                              {isAccepting === chat.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <>
+                                  <Check className="h-4 w-4 mr-1" />
+                                  Accept
+                                </>
+                              )}
+                            </Button>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+              </ScrollArea>
+            </Tabs>
           </div>
         </ResizablePanel>
 
@@ -172,97 +331,105 @@ const SupportChatPanel = () => {
           className={cn(showMobileChat ? "flex" : "hidden md:flex")}
         >
           <div className="h-full flex flex-col w-full">
-            <div className="h-16 border-b flex items-center px-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="md:hidden mr-2"
-                onClick={() => setShowMobileChat(false)}
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-
-              <Avatar>
-                <AvatarFallback>{selectedChat?.user?.[0]}</AvatarFallback>
-              </Avatar>
-
-              <div className="ml-3">
-                <h3 className="font-semibold text-sm">{selectedChat?.user}</h3>
-                <span className="text-xs text-muted-foreground">
-                  {selectedChat?.status}
-                </span>
-              </div>
-
-              <div className="ml-auto flex gap-2">
-                <Button variant="ghost" size="icon">
-                  <Phone className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon">
-                  <Video className="h-4 w-4" />
-                </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem>End Chat</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
-
-            <ScrollArea className="flex-1 p-6">
-              <div className="flex flex-col gap-4">
-                {messages.map((msg) => (
-                  <div
-                    key={msg.id}
-                    className={cn(
-                      "flex gap-2 max-w-[75%]",
-                      msg.sender === "admin" ? "self-end flex-row-reverse" : ""
-                    )}
+            {selectedChatId ? (
+              <>
+                <div className="h-16 border-b flex items-center px-4">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="md:hidden mr-2"
+                    onClick={() => setShowMobileChat(false)}
                   >
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback>
-                        {msg.sender === "admin" ? "YOU" : "U"}
-                      </AvatarFallback>
-                    </Avatar>
+                    <ArrowLeft className="h-5 w-5" />
+                  </Button>
 
-                    <div className="flex flex-col">
+                  <Avatar>
+                    <AvatarFallback>{selectedChat?.user?.[0]}</AvatarFallback>
+                  </Avatar>
+
+                  <div className="ml-3">
+                    <h3 className="font-semibold text-sm">{selectedChat?.user}</h3>
+                    <span className="text-xs text-muted-foreground">
+                      {selectedChat?.status}
+                    </span>
+                  </div>
+
+                  <div className="ml-auto flex gap-2">
+                    <Button variant="ghost" size="icon">
+                      <Phone className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon">
+                      <Video className="h-4 w-4" />
+                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem>End Chat</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
+
+                <ScrollArea className="flex-1 p-6">
+                  <div className="flex flex-col gap-4">
+                    {messages.map((msg) => (
                       <div
+                        key={msg.id}
                         className={cn(
-                          "rounded-xl px-4 py-2 text-sm",
-                          msg.sender === "admin"
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted"
+                          "flex gap-2 max-w-[75%]",
+                          msg.sender === "admin" ? "self-end flex-row-reverse" : ""
                         )}
                       >
-                        {msg.text}
-                      </div>
-                      <span className="text-[10px] text-muted-foreground mt-1">
-                        {msg.time}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-                <div ref={messagesEndRef} />
-              </div>
-            </ScrollArea>
+                        <Avatar className="h-8 w-8">
+                          <AvatarFallback>
+                            {msg.sender === "admin" ? "YOU" : "U"}
+                          </AvatarFallback>
+                        </Avatar>
 
-            <div className="p-4 border-t">
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Type your reply..."
-                  value={inputVal}
-                  onChange={(e) => setInputVal(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                />
-                <Button onClick={handleSend} size="icon">
-                  <Send className="h-4 w-4" />
-                </Button>
+                        <div className="flex flex-col">
+                          <div
+                            className={cn(
+                              "rounded-xl px-4 py-2 text-sm",
+                              msg.sender === "admin"
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-muted"
+                            )}
+                          >
+                            {msg.text}
+                          </div>
+                          <span className="text-[10px] text-muted-foreground mt-1">
+                            {msg.time}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                    <div ref={messagesEndRef} />
+                  </div>
+                </ScrollArea>
+
+                <div className="p-4 border-t">
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Type your reply..."
+                      value={inputVal}
+                      onChange={(e) => setInputVal(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                    />
+                    <Button onClick={handleSend} size="icon">
+                      <Send className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="flex-1 flex items-center justify-center text-muted-foreground">
+                Select a chat to start messaging
               </div>
-            </div>
+            )}
           </div>
         </ResizablePanel>
       </ResizablePanelGroup>
