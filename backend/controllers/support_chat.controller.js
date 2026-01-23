@@ -86,6 +86,9 @@ export const takeoverChat = async (req, res) => {
     await adminMember.save({ transaction });
 
     await transaction.commit();
+    const admin = await User.findByPk(adminId, {
+      attributes: ["id", "name", "userid"],
+    });
 
     // 🔔 Notify clients
     req.app
@@ -96,6 +99,7 @@ export const takeoverChat = async (req, res) => {
         chatId,
         by: adminId,
         role: "admin",
+        byName:admin.userid
       });
 
     return res.json({

@@ -56,55 +56,62 @@ export const setupSupportChat = (io) => {
             }
         });
 
-        socket.on("send_support_message", async ({ chatId, senderId, message }) => {
-            try {
-                // Validation: Verify user is part of the chat (re-using logic or relying on room membership if strict)
-                // For robustness, we can re-verify or assume if they are in the room they are authorized.
-                // Let's re-verify briefly or just save if valid.
+socket.on("send_support_message", async ({ chatId, senderId, message }) => {
+  try {
+    const chat = await SupportChat.findByPk(chatId);
+    if (!chat) {
+      socket.emit("error", { message: "Chat not found" });
+      return;
+    }
 
-                const chat = await SupportChat.findByPk(chatId);
-                if (!chat) {
-                    socket.emit("error", { message: "Chat not found" });
-                    return;
-                }
+    const isInitiator = chat.initiated_by === senderId;
 
-                // Check takeover/lock status
-                const member = await SupportMember.findOne({
-                    where: { support_chat_id: chatId, user_id: senderId }
-                });
+    const member = await SupportMember.findOne({
+      where: { support_chat_id: chatId, user_id: senderId },
+    });
 
-                console.log(`[DEBUG] Msg from ${senderId} in chat ${chatId}. Member found: ${!!member}, Locked: ${member?.is_locked}`);
+    console.log(
+      `[DEBUG] Msg from ${senderId} in chat ${chatId}. IsInitiator: ${isInitiator}, Member: ${!!member}, Locked: ${member?.is_locked}`
+    );
 
-                // fetch sender role
-                const sender = await User.findByPk(senderId);
-
-                // 🔒 Block ONLY locked SUPPORT users (not admin)
-                if (
-                    member &&
-                    member.is_locked &&
-                    sender?.role === "support"
-                ) {
-                    socket.emit("support_error", {
-                        message: "Chat is locked by an admin",
-                    });
-                    return;
-                }
-
-
-                // Save message
-                const newMessage = await SupportChatMessage.create({
-                    support_chat_id: chatId,
-                    sender_id: senderId,
-                    message: message,
-                });
-
-                // Broadcast to room
-                supportNamespace.to(`support_chat_${chatId}`).emit("receive_support_message", newMessage);
-            } catch (error) {
-                console.error("Error sending support message:", error);
-                socket.emit("error", { message: "Failed to send message" });
-            }
+    /**
+     * 🔒 RULES
+     * - Initiator (user) → always allowed
+     * - Admin/Support → MUST be SupportMember AND unlocked
+     */
+    if (!isInitiator) {
+      if (!member) {
+        socket.emit("support_error", {
+          message: "You must take over the chat to send messages",
         });
+        return;
+      }
+
+      if (member.is_locked) {
+        socket.emit("support_error", {
+          message: "Chat is locked by another agent",
+        });
+        return;
+      }
+    }
+
+    // ✅ Save message
+    const newMessage = await SupportChatMessage.create({
+      support_chat_id: chatId,
+      sender_id: senderId,
+      message,
+    });
+
+    // ✅ Broadcast
+    supportNamespace
+      .to(`support_chat_${chatId}`)
+      .emit("receive_support_message", newMessage);
+
+  } catch (error) {
+    console.error("Error sending support message:", error);
+    socket.emit("error", { message: "Failed to send message" });
+  }
+});
 
         socket.on("disconnect", () => {
             console.log(`[Support Socket] User disconnected: ${socket.id}`);
