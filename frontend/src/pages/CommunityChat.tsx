@@ -18,6 +18,22 @@ import {CommunityMember, CommunitySection, User, PrivateConversation} from "@/ap
 import CircularLoader from "@/components/ui/CircularLoader";
 import {useUsers} from "@/hooks/useUsers";
 import {Avatar, AvatarFallback} from "@/components/ui/avatar";
+import {useOnlineStatus} from "@/hooks/useOnlineStatus";
+
+// OnlineIndicator component
+const OnlineIndicator = ({ userId }: { userId: string | null }) => {
+	const { isOnline } = useOnlineStatus(userId);
+	
+	if (!userId) return null;
+	
+	return (
+		<div
+			className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-background ${
+				isOnline ? "bg-green-500" : "bg-gray-400"
+			}`}
+		/>
+	);
+};
 
 const recentChats = [
 	{
@@ -288,6 +304,8 @@ const SidebarContent = ({
 															<div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center">
 																<span className="text-xs font-medium">{chat.name.charAt(0)}</span>
 															</div>
+															{/* Add online indicator */}
+															<OnlineIndicator userId={chat.id} />
 														</div>
 														<div className="flex-1 min-w-0">
 															<span className="font-medium text-sm block truncate">{chat.name}</span>
@@ -348,6 +366,12 @@ const CommunityChat = () => {
 	const {data, isLoading, error} = useUsers(userPage, userSearch);
 	const filteredUsers: User[] = data?.users || [];
 	const userArray = filteredUsers.filter((user) => user.id !== id);
+
+	// Extract current chat user ID for online status
+	const currentChatUserId = selectedChat?.type === "user" ? 
+		userArray.find(u => u.name === selectedChat.name)?.id : null;
+	
+	const { isOnline: currentChatUserIsOnline } = useOnlineStatus(currentChatUserId);
 
 	// Private chat state
 	const [privateConversations, setPrivateConversations] = useState<PrivateConversation[]>([]);
@@ -850,16 +874,26 @@ const CommunityChat = () => {
 										</SheetContent>
 									</Sheet>
 
-									<div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
-										{selectedChat.type === "community" ? (
-											<Users className="h-5 w-5 text-primary" />
-										) : (
-											<span className="font-medium">{selectedChat.name.charAt(0)}</span>
-										)}
-									</div>
-									<div>
-										<h3 className="font-semibold">{selectedChat.name}</h3>
-										<p className="text-xs text-muted-foreground">{selectedChat.type === "community" ? "Community chat" : "Private chat"}</p>
+								<div className="relative h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
+									{selectedChat.type === "community" ? (
+										<Users className="h-5 w-5 text-primary" />
+									) : (
+										<span className="font-medium">{selectedChat.name.charAt(0)}</span>
+									)}
+									{selectedChat.type === "user" && (
+										<OnlineIndicator userId={currentChatUserId} />
+									)}
+								</div>
+								<div>
+									<h3 className="font-semibold">{selectedChat.name}</h3>
+									<p className="text-xs text-muted-foreground">
+										{selectedChat.type === "community" 
+											? "Community chat" 
+											: currentChatUserIsOnline 
+												? "Online" 
+												: "Offline"
+										}
+									</p>
 									</div>
 								</div>
 
