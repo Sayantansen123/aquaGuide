@@ -83,6 +83,17 @@ const SupportChatPanel = () => {
   const [isLocked, setIsLocked] = useState(false);
   const [lockMessage, setLockMessage] = useState<string | null>(null);
   const [isTakingOver, setIsTakingOver] = useState(false);
+  const [lockedChats, setLockedChats] = useState<Record<string, boolean>>({});
+  const [lockMessages, setLockMessages] = useState<Record<string, string>>({});
+  const [assignedTo, setAssignedTo] = useState<string | null>(null);
+
+  const isChatLocked = selectedChatId
+  ? lockedChats[selectedChatId]
+  : false;
+
+  const currentLockMessage = selectedChatId
+    ? lockMessages[selectedChatId]
+    : null;
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -234,18 +245,28 @@ const SupportChatPanel = () => {
     });
 
     // ✅ HANDLE TAKEOVER
-    onChatTakenOver(({ chatId, by }) => {
-      if (chatId !== selectedChatId) return;
+onChatTakenOver(({ chatId, by, byName }) => {
+  setLockedChats((prev) => ({
+    ...prev,
+    [chatId]: by !== userId,
+  }));
 
-      if (by !== userId) {
-        setIsLocked(true);
-        setLockMessage("This chat has been taken over by an admin.");
-      } else {
-        // admin who took over
-        setIsLocked(false);
-        setLockMessage(null);
-      }
-    });
+  setLockMessages((prev) => ({
+    ...prev,
+    [chatId]:
+      by !== userId
+        ? `This chat is assigned to ${byName}`
+        : "",
+  }));
+
+  if (chatId === selectedChatId) {
+    if (by !== userId) {
+      setAssignedTo(byName); // ✅ NAME
+    } else {
+      setAssignedTo(null);
+    }
+  }
+});
 
 
     return () => {
@@ -254,16 +275,15 @@ const SupportChatPanel = () => {
   }, [accessToken]);
 
   // Join chat room when selected
-  useEffect(() => {
-    if (!selectedChatId || !userId) return;
+ useEffect(() => {
+  if (!selectedChatId || !userId) return;
 
-    setMessages([]);
-    setIsLocked(false);        // ✅ RESET
-    setLockMessage(null);      // ✅ RESET
+  setMessages([]);
+  joinSupportChat(selectedChatId, userId);
+  fetchMessages(selectedChatId);
 
-    joinSupportChat(selectedChatId, userId);
-    fetchMessages(selectedChatId);
-  }, [selectedChatId, userId]);
+}, [selectedChatId, userId]);
+
 
 
   // Auto-scroll to bottom
@@ -272,12 +292,15 @@ const SupportChatPanel = () => {
   }, [messages]);
 
   const handleSend = () => {
-    if (isLocked) return;      // ✅ ADD
-    if (!inputVal.trim() || !selectedChatId) return;
+    if (!selectedChatId) return;
+    if (isChatLocked) return; // 🔒 HARD STOP
+
+    if (!inputVal.trim()) return;
 
     sendSupportMessage(selectedChatId, userId, inputVal);
     setInputVal("");
   };
+
 
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -508,9 +531,13 @@ const SupportChatPanel = () => {
                 </ScrollArea>
 
                 <div className="p-4 border-t">
-                  {isLocked ? (
-                    <div className="w-full text-center text-sm text-muted-foreground">
-                      {lockMessage}
+                  {isChatLocked ? (
+                    <div className="w-full rounded-md bg-muted px-4 py-3 text-sm text-muted-foreground">
+                      🔒 This chat is currently assigned to{" "}
+                      <span className="font-medium text-foreground">
+                        {assignedTo ?? "another agent"}
+                      </span>
+                      . You can view messages but cannot reply.
                     </div>
                   ) : (
                     <div className="flex gap-2">

@@ -78,7 +78,7 @@ export const onChatResolved = (
   supportSocket.on("support:chat_resolved", callback);
 };
 export const onChatTakenOver = (
-  callback: (payload: { chatId: string; by: string; role: string }) => void
+  callback: (payload: { chatId: string; by: string; role: string, byName:string }) => void
 ) => {
   if (!supportSocket) return;
   supportSocket.on("support:chat_taken_over", callback);
