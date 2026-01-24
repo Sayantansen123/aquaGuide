@@ -1,36 +1,38 @@
-import {useEffect, useRef, useState, useLayoutEffect} from "react";
-import {Button} from "@/components/ui/button";
-import {Input} from "@/components/ui/input";
-import {ScrollArea} from "@/components/ui/scroll-area";
-import {Sheet, SheetContent, SheetTrigger} from "@/components/ui/sheet";
-import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
-import {Plus, Search, Users, Send, Menu, MessageCircle, UserPlus} from "lucide-react";
-import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle} from "@/components/ui/dialog";
-import {socket} from "../socket/index";
-import {privateSocket, connectPrivateSocket} from "../socket/privateInstance";
-import {privateChatApi} from "@/api/modules/private_chat";
-import {Label} from "recharts";
-import {Textarea} from "@/components/ui/textarea";
-import {toast} from "sonner";
-import {communityChatApi} from "@/api/modules/community_chat";
-import {Checkbox} from "@/components/ui/checkbox";
-import {CommunityMember, CommunitySection, User, PrivateConversation} from "@/api/apiTypes";
+import { useEffect, useRef, useState, useLayoutEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Plus, Search, Users, Send, Menu, MessageCircle, UserPlus, Phone, Video } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { socket } from "../socket/index";
+import { privateSocket, connectPrivateSocket } from "../socket/privateInstance";
+import { privateChatApi } from "@/api/modules/private_chat";
+import { Label } from "recharts";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
+import { communityChatApi } from "@/api/modules/community_chat";
+import { Checkbox } from "@/components/ui/checkbox";
+import { CommunityMember, CommunitySection, User, PrivateConversation } from "@/api/apiTypes";
 import CircularLoader from "@/components/ui/CircularLoader";
-import {useUsers} from "@/hooks/useUsers";
-import {Avatar, AvatarFallback} from "@/components/ui/avatar";
-import {useOnlineStatus} from "@/hooks/useOnlineStatus";
+import { useUsers } from "@/hooks/useUsers";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import { useWebRTC } from "@/hooks/useWebRTC";
+import CallModal from "@/components/chat/CallModal";
 
 // OnlineIndicator component
 const OnlineIndicator = ({ userId }: { userId: string | null }) => {
-	const { isOnline } = useOnlineStatus(userId);
-	
+	const { isUserOnline } = useOnlineStatus();
+	const isOnline = userId ? isUserOnline(userId) : false;
+
 	if (!userId) return null;
-	
+
 	return (
 		<div
-			className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-background ${
-				isOnline ? "bg-green-500" : "bg-gray-400"
-			}`}
+			className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-background ${isOnline ? "bg-green-500" : "bg-gray-400"
+				}`}
 		/>
 	);
 };
@@ -100,8 +102,8 @@ const SidebarContent = ({
 	userArray,
 	handleUserSelect,
 }: {
-	selectedChat: {id: string; name: string; type: "user" | "community"} | null;
-	setSelectedChat: (chat: {id: string; name: string; type: "user" | "community"} | null) => void;
+	selectedChat: { id: string; name: string; type: "user" | "community" } | null;
+	setSelectedChat: (chat: { id: string; name: string; type: "user" | "community" } | null) => void;
 	communitySearch: string;
 	setCommunitySearch: (value: string) => void;
 	userSearch: string;
@@ -169,11 +171,10 @@ const SidebarContent = ({
 												});
 												onSelectChat?.();
 											}}
-											className={`p-3 rounded-lg cursor-pointer transition-colors ${
-												selectedChat?.id === community.community_id && selectedChat?.type === "community"
-													? "bg-primary/10 border border-primary/20"
-													: "hover:bg-accent"
-											}`}>
+											className={`p-3 rounded-lg cursor-pointer transition-colors ${selectedChat?.id === community.community_id && selectedChat?.type === "community"
+												? "bg-primary/10 border border-primary/20"
+												: "hover:bg-accent"
+												}`}>
 											<div className="flex items-center gap-2">
 												<Users className="h-4 w-4 text-primary" />
 												<span className="font-medium text-sm truncate">{community?.community?.name || "N/A"}</span>
@@ -186,10 +187,10 @@ const SidebarContent = ({
 								{joinedCom.filter((community) =>
 									community.community.name.toLowerCase().includes(communitySearch.toLowerCase())
 								).length === 0 && communitySearch && (
-									<div className="text-center py-8">
-										<p className="text-sm text-muted-foreground">No communities found</p>
-									</div>
-								)}
+										<div className="text-center py-8">
+											<p className="text-sm text-muted-foreground">No communities found</p>
+										</div>
+									)}
 							</div>
 						</ScrollArea>
 					</div>
@@ -231,11 +232,10 @@ const SidebarContent = ({
 												});
 												onSelectChat?.();
 											}}
-											className={`p-3 rounded-lg cursor-pointer transition-colors ${
-												selectedChat?.id === community.id && selectedChat?.type === "community"
-													? "bg-primary/10 border border-primary/20"
-													: "hover:bg-accent"
-											}`}>
+											className={`p-3 rounded-lg cursor-pointer transition-colors ${selectedChat?.id === community.id && selectedChat?.type === "community"
+												? "bg-primary/10 border border-primary/20"
+												: "hover:bg-accent"
+												}`}>
 											<div className="flex items-center gap-2">
 												<Users className="h-4 w-4 text-primary" />
 												<span className="font-medium text-sm truncate">{community?.name || "N/A"}</span>
@@ -248,10 +248,10 @@ const SidebarContent = ({
 								{allCommunity.filter((community) =>
 									community.name.toLowerCase().includes(communitySearch.toLowerCase())
 								).length === 0 && communitySearch && (
-									<div className="text-center py-8">
-										<p className="text-sm text-muted-foreground">No communities found</p>
-									</div>
-								)}
+										<div className="text-center py-8">
+											<p className="text-sm text-muted-foreground">No communities found</p>
+										</div>
+									)}
 							</div>
 						</ScrollArea>
 					</div>
@@ -293,11 +293,10 @@ const SidebarContent = ({
 													handleUserSelect(chat);
 													onSelectChat?.();
 												}}
-												className={`p-3 rounded-lg cursor-pointer transition-colors ${
-													selectedChat?.id === chat.id && selectedChat?.type === "user"
-														? "bg-primary/10 border border-primary/20"
-														: "hover:bg-accent"
-												}`}>
+												className={`p-3 rounded-lg cursor-pointer transition-colors ${selectedChat?.id === chat.id && selectedChat?.type === "user"
+													? "bg-primary/10 border border-primary/20"
+													: "hover:bg-accent"
+													}`}>
 												<div className="flex items-center justify-between">
 													<div className="flex items-center gap-2">
 														<div className="relative">
@@ -363,15 +362,35 @@ const CommunityChat = () => {
 	const [userPage, setUserPage] = useState(1);
 	const [memberLoading, setMemeberLoading] = useState<boolean>(false);
 
-	const {data, isLoading, error} = useUsers(userPage, userSearch);
+	const { data, isLoading, error } = useUsers(userPage, userSearch);
 	const filteredUsers: User[] = data?.users || [];
 	const userArray = filteredUsers.filter((user) => user.id !== id);
 
 	// Extract current chat user ID for online status
-	const currentChatUserId = selectedChat?.type === "user" ? 
+	const currentChatUserId = selectedChat?.type === "user" ?
 		userArray.find(u => u.name === selectedChat.name)?.id : null;
-	
-	const { isOnline: currentChatUserIsOnline } = useOnlineStatus(currentChatUserId);
+
+	const { isUserOnline } = useOnlineStatus();
+	const currentChatUserIsOnline = currentChatUserId ? isUserOnline(currentChatUserId) : false;
+
+	// WebRTC Hook
+	const {
+		localStream,
+		remoteStream,
+		isCallActive,
+		incomingCall,
+		startCall,
+		answerCall,
+		rejectCall,
+		endCall,
+		toggleVideo,
+		toggleAudio,
+		isVideoEnabled,
+		isAudioEnabled
+	} = useWebRTC({
+		userId: userid,
+		onCallEnded: () => console.log("Call ended"),
+	});
 
 	// Private chat state
 	const [privateConversations, setPrivateConversations] = useState<PrivateConversation[]>([]);
@@ -701,7 +720,7 @@ const CommunityChat = () => {
 				if (!userid) return;
 				const res = await communityChatApi.getJoinedCommunity();
 				setJoinedCom(res?.data?.data || []);
-			} catch (error) {}
+			} catch (error) { }
 		};
 		getJoinCommunity();
 	}, [communityCreated]);
@@ -711,7 +730,7 @@ const CommunityChat = () => {
 			try {
 				const res = await communityChatApi.getAllPublicCommunity();
 				setAllCommunity(res?.data?.data);
-			} catch (error) {}
+			} catch (error) { }
 		};
 		handleAllPublicCommunity();
 	}, [communityCreated]);
@@ -720,7 +739,7 @@ const CommunityChat = () => {
 		try {
 			const res = await communityChatApi.joinCommunity(selectedChat.id);
 			setCommunityCreated((prev) => !prev);
-		} catch (error) {}
+		} catch (error) { }
 	};
 
 	useEffect(() => {
@@ -766,7 +785,7 @@ const CommunityChat = () => {
 	// Fixed Scroll to Bottom (For new messages/initial load)
 	useEffect(() => {
 		if (page === 1 && messages.length > 0 && lastMessageRef.current) {
-			lastMessageRef.current.scrollIntoView({behavior: "auto", block: "end"});
+			lastMessageRef.current.scrollIntoView({ behavior: "auto", block: "end" });
 		}
 	}, [messages, mesSend, page]);
 
@@ -821,6 +840,22 @@ const CommunityChat = () => {
 				</DialogContent>
 			</Dialog>
 
+			{/* Call Modal & Incoming Call Alert */}
+			<CallModal
+				isOpen={isCallActive || !!incomingCall}
+				localStream={localStream}
+				remoteStream={remoteStream}
+				onEndCall={() => endCall(true)}
+				isIncoming={!!incomingCall && !isCallActive}
+				callerName={incomingCall?.name || selectedChat.name}
+				onAnswer={answerCall}
+				onReject={rejectCall}
+				toggleVideo={toggleVideo}
+				toggleAudio={toggleAudio}
+				isVideoEnabled={isVideoEnabled}
+				isAudioEnabled={isAudioEnabled}
+			/>
+
 			<div className="flex h-[calc(100vh-130px)] min-h-[500px] border rounded-lg overflow-hidden bg-card">
 				{/* Desktop Sidebar */}
 				<div className="hidden md:flex w-[400px] border-r flex-col bg-muted/30">
@@ -874,27 +909,49 @@ const CommunityChat = () => {
 										</SheetContent>
 									</Sheet>
 
-								<div className="relative h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
-									{selectedChat.type === "community" ? (
-										<Users className="h-5 w-5 text-primary" />
-									) : (
-										<span className="font-medium">{selectedChat.name.charAt(0)}</span>
-									)}
-									{selectedChat.type === "user" && (
-										<OnlineIndicator userId={currentChatUserId} />
-									)}
-								</div>
-								<div>
-									<h3 className="font-semibold">{selectedChat.name}</h3>
-									<p className="text-xs text-muted-foreground">
-										{selectedChat.type === "community" 
-											? "Community chat" 
-											: currentChatUserIsOnline 
-												? "Online" 
-												: "Offline"
-										}
-									</p>
+									<div className="relative h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
+										{selectedChat.type === "community" ? (
+											<Users className="h-5 w-5 text-primary" />
+										) : (
+											<span className="font-medium">{selectedChat.name.charAt(0)}</span>
+										)}
+										{selectedChat.type === "user" && (
+											<OnlineIndicator userId={currentChatUserId} />
+										)}
 									</div>
+									<div>
+										<h3 className="font-semibold">{selectedChat.name}</h3>
+										<p className="text-xs text-muted-foreground">
+											{selectedChat.type === "community"
+												? "Community chat"
+												: currentChatUserIsOnline
+													? "Online"
+													: "Offline"
+											}
+										</p>
+									</div>
+
+									{/* Call Buttons (Only for User Chat) */}
+									{selectedChat.type === "user" && (
+										<div className="ml-auto flex gap-2">
+											<Button
+												variant="ghost"
+												size="icon"
+												onClick={() => currentChatUserId && startCall(currentChatUserId, false)}
+												title="Voice Call"
+											>
+												<Phone className="h-5 w-5 text-muted-foreground hover:text-primary" />
+											</Button>
+											<Button
+												variant="ghost"
+												size="icon"
+												onClick={() => currentChatUserId && startCall(currentChatUserId, true)}
+												title="Video Call"
+											>
+												<Video className="h-5 w-5 text-muted-foreground hover:text-primary" />
+											</Button>
+										</div>
+									)}
 								</div>
 
 								{/* Messages */}

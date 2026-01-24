@@ -48,8 +48,8 @@ router.post("/user/:userId/toggle_support", adminRoute, toggleSupport);
 router.post("/user/:userId/delete", adminRoute, deleteUser);
 
 // GET /api/manage_users/search?userName=
-router.get("/search", supportOrAdminRoute, searchUser);
+router.get("/search", searchUser);
 
 router.get("/stats/user-summary", supportOrAdminRoute, getUserSummaryStats);
-router.get("/stats/content", supportOrAdminRoute , getAdminDashboardStats);
+router.get("/stats/content", supportOrAdminRoute, getAdminDashboardStats);
 export default router;
