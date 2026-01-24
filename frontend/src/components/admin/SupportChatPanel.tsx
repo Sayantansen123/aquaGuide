@@ -42,11 +42,11 @@ import {
   getUnacceptedChats,
   acceptSupportChat,
   getSupportChatMessages,
-  SupportChat,
-  SupportChatMessage,
   resolveSupportChat,
   takeoverSupportChat,
-} from "@/api/support";
+} from "@/api/modules/support";
+
+import { SupportChat, SupportChatMessage } from "@/api/apiTypes";
 
 type ChatStatus = "active" | "pending" | "resolved";
 

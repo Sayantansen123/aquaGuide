@@ -20,7 +20,7 @@ import {
     disconnectSupportSocket,
     onChatResolved
 } from "@/socket/supportSocket";
-import { getSupportChatMessages, SupportChatMessage } from "@/api/support";
+import { getSupportChatMessages, SupportChatMessage } from "@/api/modules/support";
 
 interface SupportChatWindowProps {
     chatId: string;

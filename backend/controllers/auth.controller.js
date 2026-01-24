@@ -549,3 +549,86 @@ export const getUserLocation = async (req, res) => {
     res.status(500).json({ error: "Failed to get location" });
   }
 };
+
+// --------------------
+// GET USER ONLINE STATUS
+// --------------------
+export const getUserOnlineStatus = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    const user = await User.findByPk(userId, {
+      attributes: ['id', 'userid', 'name', 'last_seen', 'status']
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    // Consider online if last_seen is within last 1 minute (more accurate)
+    const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
+    const isOnline = user.status === 'active' && new Date(user.last_seen) > oneMinuteAgo;
+
+    res.json({
+      success: true,
+      data: {
+        userId: user.id,
+        userid: user.userid,
+        name: user.name,
+        isOnline,
+        lastSeen: user.last_seen
+      }
+    });
+  } catch (error) {
+    console.error("Error fetching user online status:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch online status"
+    });
+  }
+};
+
+// --------------------
+// GET BULK ONLINE STATUS
+// --------------------
+export const getBulkOnlineStatus = async (req, res) => {
+  try {
+    const { userIds } = req.body; // Array of user IDs
+    
+    if (!Array.isArray(userIds)) {
+      return res.status(400).json({
+        success: false,
+        message: "userIds must be an array"
+      });
+    }
+
+    const users = await User.findAll({
+      where: { id: userIds },
+      attributes: ['id', 'userid', 'name', 'last_seen', 'status']
+    });
+
+    const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
+    
+    const statuses = users.map(user => ({
+      userId: user.id,
+      userid: user.userid,
+      name: user.name,
+      isOnline: user.status === 'active' && new Date(user.last_seen) > oneMinuteAgo,
+      lastSeen: user.last_seen
+    }));
+
+    res.json({
+      success: true,
+      data: statuses
+    });
+  } catch (error) {
+    console.error("Error fetching bulk online status:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch online statuses"
+    });
+  }
+};

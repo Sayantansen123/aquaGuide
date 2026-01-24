@@ -7,6 +7,9 @@ import User from "../models/user.model.js";
 export function setupPrivateChat(io) {
   const chat = io.of("/api/chat/private");
   
+  // Track online users in private chat namespace
+  const onlineUsers = new Map(); // userId -> socketId
+  
   console.log("Private chat namespace initialized");
 
   chat.use((socket, next) => {
@@ -34,9 +37,53 @@ export function setupPrivateChat(io) {
     }
   });
 
+  // Helper function to broadcast user status changes
+  async function broadcastUserStatus(userId, isOnline) {
+    try {
+      console.log(`Broadcasting status for user ${userId} (${isOnline ? 'online' : 'offline'})`);
+
+      // Broadcast to all connected clients in the private chat namespace
+      chat.emit("user-status-changed", {
+        userId,
+        isOnline,
+        timestamp: new Date()
+      });
+    } catch (error) {
+      console.error("Error broadcasting user status:", error);
+    }
+  }
+
   chat.on("connection", (socket) => {
     const userId = socket.data.userId;
     console.log(`User ${userId} connected to private chat (socket: ${socket.id})`);
+
+    // Add user to online tracking
+    onlineUsers.set(userId, socket.id);
+    
+    // Update last_seen when user connects
+    User.update(
+      { last_seen: new Date() },
+      { where: { id: userId } }
+    ).catch(err => console.error("Error updating last_seen on connect:", err));
+    
+    // Broadcast user came online to all their conversations
+    broadcastUserStatus(userId, true);
+
+    // Keep-alive: Update last_seen every 30 seconds while connected
+    const keepAliveInterval = setInterval(async () => {
+      try {
+        await User.update(
+          { last_seen: new Date() },
+          { where: { id: userId } }
+        );
+        console.log(`Updated last_seen for user ${userId}`);
+      } catch (err) {
+        console.error("Error updating last_seen in keep-alive:", err);
+      }
+    }, 30 * 1000); // Every 30 seconds
+
+    // Store interval ID for cleanup
+    socket.data.keepAliveInterval = keepAliveInterval;
 
     socket.on("join-conversation", (conversationId) => {
       socket.join(conversationId);
@@ -118,6 +165,23 @@ export function setupPrivateChat(io) {
 
     socket.on("disconnect", () => {
       console.log(`User ${userId} disconnected from private chat`);
+      
+      // Clear keep-alive interval
+      if (socket.data.keepAliveInterval) {
+        clearInterval(socket.data.keepAliveInterval);
+      }
+      
+      // Remove user from online tracking
+      onlineUsers.delete(userId);
+      
+      // Update last_seen on disconnect
+      User.update(
+        { last_seen: new Date() },
+        { where: { id: userId } }
+      ).catch(err => console.error("Error updating last_seen on disconnect:", err));
+      
+      // Broadcast user went offline
+      broadcastUserStatus(userId, false);
     });
   });
 }
