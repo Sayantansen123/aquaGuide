@@ -6,23 +6,27 @@ import User from "../models/user.model.js";
 
 export function setupPrivateChat(io) {
   const chat = io.of("/api/chat/private");
+
+  // Track online users in private chat namespace
+  const onlineUsers = new Map(); // userId -> socketId
+
   
   console.log("Private chat namespace initialized");
 
   chat.use((socket, next) => {
     const token = socket.handshake.auth.token;
     console.log("Auth middleware - Token present:", !!token);
-    
+
     if (!token) {
       console.error("No token provided");
       return next(new Error("Authentication error"));
     }
-    
+
     try {
       // Use ACCESS_TOKEN_SECRET to match the auth middleware
       const payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
       console.log("Decoded payload:", payload);
-      
+
       // Use userId to match the auth middleware payload structure
       socket.data.userId = payload.userId || payload.id;
       console.log("User authenticated:", socket.data.userId);
@@ -38,6 +42,34 @@ export function setupPrivateChat(io) {
     const userId = socket.data.userId;
     console.log(`User ${userId} connected to private chat (socket: ${socket.id})`);
 
+    // Add user to online tracking
+    onlineUsers.set(userId, socket.id);
+
+    // Update last_seen when user connects
+    User.update(
+      { last_seen: new Date() },
+      { where: { id: userId } }
+    ).catch(err => console.error("Error updating last_seen on connect:", err));
+
+    // Broadcast user came online to all their conversations
+    broadcastUserStatus(userId, true);
+
+    // Keep-alive: Update last_seen every 30 seconds while connected
+    const keepAliveInterval = setInterval(async () => {
+      try {
+        await User.update(
+          { last_seen: new Date() },
+          { where: { id: userId } }
+        );
+        console.log(`Updated last_seen for user ${userId}`);
+      } catch (err) {
+        console.error("Error updating last_seen in keep-alive:", err);
+      }
+    }, 30 * 1000); // Every 30 seconds
+
+    // Store interval ID for cleanup
+    socket.data.keepAliveInterval = keepAliveInterval;
+
     socket.on("join-conversation", (conversationId) => {
       socket.join(conversationId);
       console.log(`User ${userId} joined conversation ${conversationId}`);
@@ -46,7 +78,7 @@ export function setupPrivateChat(io) {
     socket.on("send-private-message", async ({ conversationId, message }, callback) => {
       console.log(`Message received from ${userId} to conversation ${conversationId}`);
       console.log(`Message content: "${message}"`);
-      
+
       try {
         // Verify user is participant in this conversation
         const participant = await ConversationParticipant.findOne({
@@ -83,10 +115,10 @@ export function setupPrivateChat(io) {
 
         // Fetch with sender details
         const fullMsg = await PersonalMessage.findByPk(msg.id, {
-          include: { 
-            model: User, 
-            as: "sender", 
-            attributes: ["id", "name", "userid"] 
+          include: {
+            model: User,
+            as: "sender",
+            attributes: ["id", "name", "userid"]
           },
         });
 
@@ -102,7 +134,7 @@ export function setupPrivateChat(io) {
         };
 
         console.log("Broadcasting message to room:", conversationId);
-        
+
         // Emit to conversation room
         chat.to(conversationId).emit("private-message-received", messageData);
 
@@ -118,6 +150,86 @@ export function setupPrivateChat(io) {
 
     socket.on("disconnect", () => {
       console.log(`User ${userId} disconnected from private chat`);
+
+      // Clear keep-alive interval
+      if (socket.data.keepAliveInterval) {
+        clearInterval(socket.data.keepAliveInterval);
+      }
+
+      // Remove user from online tracking
+      onlineUsers.delete(userId);
+
+      // Update last_seen on disconnect
+      User.update(
+        { last_seen: new Date() },
+        { where: { id: userId } }
+      ).catch(err => console.error("Error updating last_seen on disconnect:", err));
+
+      // Broadcast user went offline
+      broadcastUserStatus(userId, false);
+
+      // Notify active calls of disconnect
+      socket.broadcast.emit("user-disconnected", userId);
     });
+
+    // --- WebRTC Signaling Events ---
+
+    socket.on("call-user", ({ userToCall, signalData, name, isVideo }) => {
+      const fromUserId = socket.data.userId; // 🔒 TRUST SERVER ONLY
+
+      console.log(`Call initiated from ${fromUserId} to ${userToCall}`);
+
+      const socketId = onlineUsers.get(userToCall);
+      if (!socketId) {
+        socket.emit("call-failed", { reason: "User is offline" });
+        return;
+      }
+
+      chat.to(socketId).emit("call-received", {
+        signal: signalData,
+        from: fromUserId, // UUID ONLY
+        name,
+        isVideo
+      });
+    });
+
+
+    socket.on("answer-call", ({ signal, to }) => {
+      const fromUserId = socket.data.userId;
+
+      console.log(`Call answered by ${fromUserId} to ${to}`);
+
+      const socketId = onlineUsers.get(to);
+      if (socketId) {
+        chat.to(socketId).emit("call-answered", {
+          signal,
+          from: fromUserId
+        });
+      }
+    });
+
+
+    socket.on("ice-candidate", ({ candidate, to }) => {
+      const fromUserId = socket.data.userId;
+
+      const socketId = onlineUsers.get(to);
+      if (socketId) {
+        chat.to(socketId).emit("ice-candidate-received", {
+          candidate,
+          from: fromUserId
+        });
+      }
+    });
+
+
+    socket.on("end-call", ({ to }) => {
+      const fromUserId = socket.data.userId;
+
+      const socketId = onlineUsers.get(to);
+      if (socketId) {
+        chat.to(socketId).emit("call-ended", { from: fromUserId });
+      }
+    });
+
   });
 }
