@@ -132,6 +132,21 @@ export const resolveChat = async (req, res) => {
       return res.status(404).json({ message: "Chat not found" });
     }
 
+    const member = await SupportMember.findOne({
+      where: {
+        user_id: req.user.id,
+        support_chat_id: chatId,
+      },
+    });
+
+    if (!member) {
+      return res.status(403).json({ message: "You are not a member of this chat" });
+    }
+
+    if (member.is_locked) {
+      return res.status(403).json({ message: "You cannot resolve this chat" });
+    }
+
     // ✅ soft-resolve instead of delete
     await chat.update({ status: "resolved" });
 
@@ -139,8 +154,8 @@ export const resolveChat = async (req, res) => {
     emitChatResolved(req.app.get("io"), chatId);
 
     return res.json({
-      success: true,
-      message: "Chat resolved successfully",
+        success: true,
+        message: "Chat resolved successfully",
     });
   } catch (error) {
     console.error("Error resolving chat:", error);
