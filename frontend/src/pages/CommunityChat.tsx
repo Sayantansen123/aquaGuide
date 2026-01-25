@@ -303,8 +303,6 @@ const SidebarContent = ({
 															<div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center">
 																<span className="text-xs font-medium">{chat.name.charAt(0)}</span>
 															</div>
-															{/* Add online indicator */}
-															<OnlineIndicator userId={chat.id} />
 														</div>
 														<div className="flex-1 min-w-0">
 															<span className="font-medium text-sm block truncate">{chat.name}</span>

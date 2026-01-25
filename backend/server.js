@@ -21,7 +21,8 @@ import faqRoutes from "./routes/faq.route.js";
 import performanceRoutes from "./routes/performance.route.js";
 import { setupPerformanceSocket } from "./lib/performance.socket.js";
 import { setupPrivateChat } from "./lib/socket-handlers-private.js";
-
+import { setupSupportChat } from "./lib/socket-handlers-support.js";
+import supportChatRoutes from "./routes/supportChat.routes.js"
 dotenv.config();
 
 // Create express app
@@ -52,7 +53,7 @@ app.use("/uploads", express.static("uploads"));
 app.use("/api/faqs", faqRoutes);
 app.use("/api/performance", performanceRoutes);
 app.use("/api/conversation/private", privateChatRoutes);
-
+app.use("/api/support", supportChatRoutes)
 app.get("/", (req, res) => {
   res.send(
     'Welcome to Aqua Guide API — visit <a href="/api-docs">/api-docs</a> for documentation'
@@ -79,7 +80,7 @@ const startServer = async () => {
       },
       transports: ["websocket", "polling"],
     });
-
+    app.set("io", io);
     // Setup chat socket handlers
     setupPerformanceSocket(io);
 
@@ -94,13 +95,14 @@ const startServer = async () => {
 
     setupChatSocket(io);
     setupPrivateChat(io);
+    setupSupportChat(io);
 
     server.listen(PORT, () => {
       console.log(`Server running on http://localhost:${PORT}`);
       console.log(`Socket.IO active on same port`);
     });
   } catch (error) {
-    console.error("Startup failed:", error.message);
+    console.error("Startup failed:", error);
     process.exit(1);
   }
 };

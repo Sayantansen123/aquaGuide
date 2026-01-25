@@ -10,6 +10,7 @@ export function setupPrivateChat(io) {
   // Track online users in private chat namespace
   const onlineUsers = new Map(); // userId -> socketId
 
+  
   console.log("Private chat namespace initialized");
 
   chat.use((socket, next) => {
@@ -36,22 +37,6 @@ export function setupPrivateChat(io) {
       next(new Error("Authentication error"));
     }
   });
-
-  // Helper function to broadcast user status changes
-  async function broadcastUserStatus(userId, isOnline) {
-    try {
-      console.log(`Broadcasting status for user ${userId} (${isOnline ? 'online' : 'offline'})`);
-
-      // Broadcast to all connected clients in the private chat namespace
-      chat.emit("user-status-changed", {
-        userId,
-        isOnline,
-        timestamp: new Date()
-      });
-    } catch (error) {
-      console.error("Error broadcasting user status:", error);
-    }
-  }
 
   chat.on("connection", (socket) => {
     const userId = socket.data.userId;

@@ -14,6 +14,24 @@ import { useCreateCommunityForum } from "@/hooks/useCommunityForumPublic";
 
 
 
+// Helper function to format date as 'today', 'yesterday', 'X days ago', or date string
+function formatRelativeDate(dateString: string) {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffTime = now.getTime() - date.getTime();
+  const diffhours = Math.floor(diffTime / (1000 * 60 * 60));
+  if (diffhours < 1) return "Some Moments ago";
+  else if (diffhours < 24) return `${diffhours} hours ago`;
+  else {
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) return "Today";
+    if (diffDays === 1) return "Yesterday";
+    if (diffDays < 30) return `${diffDays} days ago`;
+  }
+  // Fallback to locale date string for older posts
+  return date.toLocaleDateString();
+}
 
 const CommunityForum = () => {
   const [pageNumber, setPageNumber] = useState(1);
@@ -73,7 +91,7 @@ const CommunityForum = () => {
           variant="ocean"
           size="lg"
           className="w-full sm:w-auto"
-          onClick={() => setModalOpen(true)}
+          onClick={navigate.bind(null, "/create/forum")}
         >
           Start a Discussion
         </Button>
@@ -130,7 +148,13 @@ const CommunityForum = () => {
                     <CardTitle className="text-lg sm:text-xl hover:text-primary transition-colors">
                       {post.title}
                     </CardTitle>
-                    <CardDescription className="mt-2">Posted by {post.Creator_Username}</CardDescription>
+                    <CardDescription className="mt-2 flex flex-col sm:flex-row sm:items-center gap-2">
+                      <span>Posted by {post.Creator_Username}</span>
+                      {/* Created At column */}
+                      {post.createdAt && (
+                        <span className="text-xs text-muted-foreground sm:ml-4">• {formatRelativeDate(post.createdAt)}</span>
+                      )}
+                    </CardDescription>
                   </div>
                 </div>
               </CardHeader>
