@@ -11,7 +11,6 @@ import VideoGuides from "./pages/VideoGuides";
 import TextGuides from "./pages/TextGuides";
 import SpeciesDictionary from "./pages/SpeciesDictionary";
 import CommunityForum from "./pages/CommunityForum";
-import CreateForum from "./pages/CreateForum";
 import CommunityChat from "./pages/CommunityChat";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
@@ -159,14 +158,6 @@ const App = () => {
               element={
                 <Layout>
                   <CommunityForum />
-                </Layout>
-              }
-            />
-            <Route
-              path="/create/forum"
-              element={
-                <Layout>
-                  <CreateForum />
                 </Layout>
               }
             />

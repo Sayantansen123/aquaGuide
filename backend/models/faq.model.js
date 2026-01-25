@@ -15,11 +15,6 @@ FAQ.init(
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    // position: {
-    //   type: DataTypes.INTEGER,
-    //   allowNull: false,
-    //   unique: true,
-    // },
     question: {
       type: DataTypes.STRING,
       allowNull: false,

@@ -31,12 +31,12 @@ CommunityMessage.init(
 
     user_id: {
       type: DataTypes.UUID,
-      allowNull: true,
+      allowNull: false,
       references: {
         model: User,
         key: "id",
       },
-      onDelete: "SET NULL",
+      onDelete: "CASCADE",
     },
 
     message: {

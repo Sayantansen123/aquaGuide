@@ -10,6 +10,8 @@ import {
   updatePassword,
   suggestUserIds,
   getUserRole,
+  getUserOnlineStatus,
+  getBulkOnlineStatus,
 } from "../controllers/auth.controller.js";
 import { protectRoute, adminRoute,optionalProtectRoute } from "../middleware/auth.middleware.js";
 import { heartbeat } from "../controllers/heartbeat.controller.js";
@@ -47,6 +49,12 @@ router.post("/suggest_userids", suggestUserIds);
 
 // Get current role
 router.get("/getrole", getUserRole);
+
+// Get user online status
+router.get("/user/online-status/:userId", getUserOnlineStatus);
+
+// Get bulk online status
+router.post("/user/online-status/bulk", protectRoute, getBulkOnlineStatus);
 
 // Get Live location
 router.get("/getLocation", getUserLocations);

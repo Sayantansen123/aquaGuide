@@ -589,15 +589,21 @@ export interface CreatePrivateConversationResponse {
   message: string;
 }
 
-
-export interface ChatResponse{
-    id: string;
-    initiated_by: string;
-    updated_at: string;
-    created_at: string;
+// Online Status Types
+export interface UserOnlineStatus {
+  userId: string;
+  userid: string;
+  name: string;
+  isOnline: boolean;
+  lastSeen: string;
 }
 
-export interface supportChatResponse{
-    success: boolean;
-    chat: ChatResponse
+export interface OnlineStatusResponse {
+  success: boolean;
+  data: UserOnlineStatus;
+}
+
+export interface BulkOnlineStatusResponse {
+  success: boolean;
+  data: UserOnlineStatus[];
 }

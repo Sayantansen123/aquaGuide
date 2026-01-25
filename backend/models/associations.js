@@ -7,12 +7,10 @@ import CommunityMessage from "./community_chat_messages.model.js";
 import Conversation from "./conversation.model.js";
 import ConversationParticipant from "./conversation_participant.model.js";
 import PersonalMessage from "./personal_message.model.js";
-import SupportChatMessage from "./support_chat_message.model.js";
-import SupportChat from "./support_chat.model.js";
-import SupportMember from "./support_member.model.js";
+
 export default function setupAssociations() {
   console.log("setupAssociations CALLED");
-
+  
   // ================= COMMUNITY FORUM ASSOCIATIONS =================
   CommunityForum.hasMany(Comments, { as: "Comments", foreignKey: "forum_id" });
   User.hasMany(CommunityForum, {
@@ -156,52 +154,4 @@ export default function setupAssociations() {
   });
 
   console.log("All associations set up successfully");
-
-  // support chat associations
-  SupportChat.hasMany(SupportChatMessage, {
-    foreignKey: "support_chat_id",
-    as: "messages"
-  })
-  SupportChatMessage.belongsTo(User, {
-    foreignKey: "sender_id",
-    as: "sender"
-  })
-
-  // SupportChat <-> SupportMember associations
-  SupportChat.hasMany(SupportMember, {
-    foreignKey: "support_chat_id",
-    as: "supportMembers"
-  })
-  SupportMember.belongsTo(SupportChat, {
-    foreignKey: "support_chat_id",
-    as: "support_chat"
-  })
-
-  // User <-> SupportMember associations
-  User.hasMany(SupportMember, {
-    foreignKey: "user_id",
-    as: "supportMemberships"
-  })
-  SupportMember.belongsTo(User, {
-    foreignKey: "user_id",
-    as: "user"
-  })
-
-  // Many-to-Many: SupportChat <-> User through SupportMember
-  SupportChat.belongsToMany(User, {
-    through: SupportMember,
-    foreignKey: "support_chat_id",
-    otherKey: "user_id",
-    as: "members"
-  })
-  User.belongsToMany(SupportChat, {
-    through: SupportMember,
-    foreignKey: "user_id",
-    otherKey: "support_chat_id",
-    as: "supportChats"
-  })
-  SupportChat.belongsTo(User, {
-    foreignKey: "initiated_by",
-    as: "initiator",
-  });
 }
