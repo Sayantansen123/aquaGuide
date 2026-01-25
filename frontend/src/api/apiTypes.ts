@@ -601,3 +601,22 @@ export interface supportChatResponse{
     success: boolean;
     chat: ChatResponse
 }
+
+// Online Status Types
+export interface UserOnlineStatus {
+  userId: string;
+  userid: string;
+  name: string;
+  isOnline: boolean;
+  lastSeen: string;
+}
+
+export interface OnlineStatusResponse {
+  success: boolean;
+  data: UserOnlineStatus;
+}
+
+export interface BulkOnlineStatusResponse {
+  success: boolean;
+  data: UserOnlineStatus[];
+}
