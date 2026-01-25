@@ -83,3 +83,11 @@ export const onChatTakenOver = (
   if (!supportSocket) return;
   supportSocket.on("support:chat_taken_over", callback);
 };
+
+export const onSupportError = (
+  callback: (err: { message: string }) => void
+) => {
+  if (!supportSocket) return;
+  supportSocket.on("support_error", callback);
+};
+

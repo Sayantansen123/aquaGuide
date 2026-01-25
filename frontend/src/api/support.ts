@@ -32,6 +32,7 @@ export interface GetSupportChatsResponse {
 
 export interface GetSupportMessagesResponse {
     success: boolean;
+    isLocked: boolean;
     messages: SupportChatMessage[];
 }
 

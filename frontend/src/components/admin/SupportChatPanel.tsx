@@ -35,6 +35,8 @@ import {
   onSupportMessage,
   disconnectSupportSocket,
   onChatTakenOver,
+
+  onSupportError,
 } from "@/socket/supportSocket";
 
 import {
@@ -80,20 +82,21 @@ const SupportChatPanel = () => {
   const [isAccepting, setIsAccepting] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("active");
   const [isResolving, setIsResolving] = useState<string | null>(null);
-  const [isLocked, setIsLocked] = useState(false);
-  const [lockMessage, setLockMessage] = useState<string | null>(null);
+  
   const [isTakingOver, setIsTakingOver] = useState(false);
   const [lockedChats, setLockedChats] = useState<Record<string, boolean>>({});
-  const [lockMessages, setLockMessages] = useState<Record<string, string>>({});
   const [assignedTo, setAssignedTo] = useState<string | null>(null);
+  const selectedChatIdRef = useRef<string | null>(null);
 
-  const isChatLocked = selectedChatId
-  ? lockedChats[selectedChatId]
-  : false;
+  useEffect(() => {
+    selectedChatIdRef.current = selectedChatId;
+  }, [selectedChatId]);
 
-  const currentLockMessage = selectedChatId
-    ? lockMessages[selectedChatId]
-    : null;
+  const isChatLocked = Boolean(
+    selectedChatId &&
+    lockedChats[selectedChatId] === true
+  );
+
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -166,24 +169,37 @@ const SupportChatPanel = () => {
 
   // Fetch messages for selected chat
   const fetchMessages = async (chatId: string) => {
-    try {
-      const res = await getSupportChatMessages(chatId);
-      if (res.success && res.messages) {
-        const formattedMessages = res.messages.map((msg) => ({
-          id: msg.id,
-          sender: msg.sender_id === userId ? "admin" : "user",
-          text: msg.message,
-          time: new Date(msg.created_at).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-        })) as Message[];
-        setMessages(formattedMessages);
-      }
-    } catch (err) {
-      console.error("Failed to fetch messages:", err);
-    }
-  };
+  try {
+    const res = await getSupportChatMessages(chatId);
+
+    if (!res.success) return;
+
+    // messages
+    const formattedMessages = res.messages.map((msg) => ({
+      id: msg.id,
+      sender: msg.sender_id === userId ? "admin" : "user",
+      text: msg.message,
+      time: new Date(msg.created_at).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    })) as Message[];
+
+    setMessages(formattedMessages);
+
+    // 🔒 LOCK STATE (THIS IS THE FIX)
+    setLockedChats(prev => ({
+      ...prev,
+      [chatId]: res.isLocked,
+    }));
+
+    setAssignedTo(res.isLocked ? "another agent" : null);
+    setInputVal("");
+  } catch (err) {
+    console.error("Failed to fetch messages:", err);
+  }
+};
+
   const handleResolveChat = async () => {
     if (!selectedChatId) return;
 
@@ -243,30 +259,41 @@ const SupportChatPanel = () => {
         },
       ]);
     });
+    onSupportError((err) => {
+  if (err.message !== "Chat is locked by another agent") return;
+
+  const chatId = selectedChatIdRef.current;
+  if (!chatId) return;
+
+  setLockedChats(prev => ({
+    ...prev,
+    [chatId]: true,
+  }));
+
+  setAssignedTo("another agent");
+  setInputVal("");
+});
+
+
 
     // ✅ HANDLE TAKEOVER
 onChatTakenOver(({ chatId, by, byName }) => {
-  setLockedChats((prev) => ({
+  const locked = by !== userId;
+
+  setLockedChats(prev => ({
     ...prev,
-    [chatId]: by !== userId,
+    [chatId]: locked,
   }));
 
-  setLockMessages((prev) => ({
-    ...prev,
-    [chatId]:
-      by !== userId
-        ? `This chat is assigned to ${byName}`
-        : "",
-  }));
-
-  if (chatId === selectedChatId) {
-    if (by !== userId) {
-      setAssignedTo(byName); // ✅ NAME
-    } else {
-      setAssignedTo(null);
-    }
+  // 🔥 use REF, not state
+  if (chatId === selectedChatIdRef.current) {
+    setAssignedTo(locked ? byName : null);
+    if (locked) setInputVal("");
   }
 });
+
+
+
 
 
     return () => {
@@ -279,10 +306,14 @@ onChatTakenOver(({ chatId, by, byName }) => {
   if (!selectedChatId || !userId) return;
 
   setMessages([]);
+  setAssignedTo(null);
+  setInputVal("");
+
   joinSupportChat(selectedChatId, userId);
   fetchMessages(selectedChatId);
 
 }, [selectedChatId, userId]);
+
 
 
 
