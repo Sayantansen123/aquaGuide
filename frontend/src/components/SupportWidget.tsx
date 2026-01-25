@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import SupportChatWindow from "./SupportChatWindow";
-import { startSupportChat, getMySupportChats } from "@/api/modules/support";
-import { SupportChat } from "@/api/modules/support";
+import { startSupportChat, getMySupportChats } from "@/api/support";
+import { SupportChat } from "@/api/support";
 
 const getMostRecentChat = (chats: SupportChat[]) => {
   if (!chats.length) return null;

@@ -1,6 +1,4 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { disconnectPrivateSocket } from "@/socket/privateInstance";
-import { socket } from "@/socket/index";
 
 const userSlice = createSlice({
   name: "user",
@@ -98,12 +96,6 @@ const userSlice = createSlice({
       state.role = null;
       state.id = null;
       localStorage.clear();
-      
-      // Disconnect sockets on logout
-      disconnectPrivateSocket();
-      if (socket.connected) {
-        socket.disconnect();
-      }
     },
   },
 });

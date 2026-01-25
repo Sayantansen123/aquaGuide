@@ -589,25 +589,6 @@ export interface CreatePrivateConversationResponse {
   message: string;
 }
 
-// Online Status Types
-export interface UserOnlineStatus {
-  userId: string;
-  userid: string;
-  name: string;
-  isOnline: boolean;
-  lastSeen: string;
-}
-
-export interface OnlineStatusResponse {
-  success: boolean;
-  data: UserOnlineStatus;
-}
-
-export interface BulkOnlineStatusResponse {
-  success: boolean;
-  data: UserOnlineStatus[];
-}
-
 
 export interface ChatResponse{
     id: string;
@@ -619,39 +600,4 @@ export interface ChatResponse{
 export interface supportChatResponse{
     success: boolean;
     chat: ChatResponse
-}
-
-
-export interface SupportChatMessage {
-    id: string;
-    support_chat_id: string;
-    sender_id: string;
-    message: string;
-    created_at: string;
-    updated_at: string;
-}
-
-export interface SupportChat {
-    id: string;
-    initiated_by: string;
-    description: string;
-    is_accepted: boolean;
-    status: "active" | "resolved";
-    created_at: string;
-    updated_at: string;
-    initiator?: {
-        id: string;
-        name: string;
-        userid: string;
-    };
-}
-
-export interface GetSupportChatsResponse {
-    success: boolean;
-    chats: SupportChat[];
-}
-
-export interface GetSupportMessagesResponse {
-    success: boolean;
-    messages: SupportChatMessage[];
 }

@@ -1,6 +1,39 @@
-import httpClient from "../axiosSetup";
-import { supportChatResponse, GetSupportChatsResponse, GetSupportMessagesResponse } from "../apiTypes";
+import httpClient from "./axiosSetup";
+import { supportChatResponse } from "./apiTypes";
 
+export interface SupportChatMessage {
+    id: string;
+    support_chat_id: string;
+    sender_id: string;
+    message: string;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface SupportChat {
+    id: string;
+    initiated_by: string;
+    description: string;
+    is_accepted: boolean;
+    status: "active" | "resolved";
+    created_at: string;
+    updated_at: string;
+    initiator?: {
+        id: string;
+        name: string;
+        userid: string;
+    };
+}
+
+export interface GetSupportChatsResponse {
+    success: boolean;
+    chats: SupportChat[];
+}
+
+export interface GetSupportMessagesResponse {
+    success: boolean;
+    messages: SupportChatMessage[];
+}
 
 /**
  * Start a new support chat (user only)
