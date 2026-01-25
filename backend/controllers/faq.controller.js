@@ -123,3 +123,56 @@ export const deleteFAQ = async (req, res) => {
     return res.status(500).json({ error: "Failed to delete faq" });
   }
 };
+
+
+export const updateFAQ = async(req, res) => {
+    try{
+        const { id } = req.params;
+        const { question, answers } = req.body;
+        const faq = await FAQ.findByPk(id);
+        if(!faq){
+            return res.status(404).json({ message: "FAQ not found" });
+        }
+        faq.question = question || faq.question;
+        faq.answers = answers || faq.answers;
+        await faq.save();
+        return res.status(200).json({
+            message: "FAQ updated successfully",
+            faq: {
+                id: faq.id,
+                question: faq.question,
+                answers: faq.answers
+            }
+        });
+    }
+    catch(error){
+        console.error("Error updating FAQ:", error);
+        return res.status(500).json({ error: "Failed to update FAQ" });
+    }
+}
+
+
+export const updateFAQPosition = async(req, res) => {
+    try{
+        const { id } = req.params;
+        const { positiondict } = req.body; // Expecting { faqId1: newPosition1, faqId2: newPosition2, ... }
+        const faqArr = await FAQ.findAll()
+        const faqMap = {};
+        faqArr.forEach(faq => {
+            faqMap[faq.id] = faq;
+        });
+        for(const faqId in positiondict){
+            if(faqMap[faqId]){
+                faqMap[faqId].position = positiondict[faqId];
+                await faqMap[faqId].save();
+            }
+        }
+        return res.status(200).json({
+            message: "FAQ positions updated successfully"
+        });
+    }
+    catch(error){
+        console.error("Error updating FAQ positions:", error);
+        return res.status(500).json({ error: "Failed to update FAQ positions" });
+    }
+}
