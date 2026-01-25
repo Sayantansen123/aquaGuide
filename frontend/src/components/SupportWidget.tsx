@@ -115,7 +115,7 @@ const SupportWidget: React.FC = () => {
 
       {open && !chatId && (
         <div className="w-64 p-3 bg-white rounded-lg shadow-lg">
-          <div className="font-semibold mb-2">Need help?</div>
+          <div className="font-semibold mb-2 text-black">Need help?</div>
 
           {error && (
             <div className="text-red-500 text-sm mb-2">{error}</div>
