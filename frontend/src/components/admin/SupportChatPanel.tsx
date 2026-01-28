@@ -3,8 +3,6 @@ import {
   Search,
   Send,
   MoreVertical,
-  Phone,
-  Video,
   ArrowLeft,
   Check,
   Loader2,
@@ -474,12 +472,6 @@ onChatTakenOver(({ chatId, by, byName }) => {
                   </div>
 
                   <div className="ml-auto flex gap-2">
-                    <Button variant="ghost" size="icon">
-                      <Phone className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon">
-                      <Video className="h-4 w-4" />
-                    </Button>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon">
