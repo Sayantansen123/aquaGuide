@@ -20,14 +20,10 @@ import {
   Fish,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import heroImage from "@/assets/hero-aquarium.jpg";
-import slider2 from "@/assets/slider-2.jpg";
-import slider3 from "@/assets/slider-3.jpg";
-import slider4 from "@/assets/slider-4.jpg";
 
-import { TankVolumeCalculator } from "@/components/tools/TankVolumeCalculator";
-import { WaterParameters } from "@/components/tools/WaterParameter";
-import { FeedingSchedule } from "@/components/tools/FeedingSchedule";
+
+
+import { JigsawPuzzle } from "@/components/JigsawPuzzle";
 
 
 function TypewriterText({ text, speed = 50 }) {
@@ -191,7 +187,7 @@ const Home = () => {
       </section>
 
       {/* Features Section — Bubble Layout */}
-      <section className="py-16 md:py-24 bg-muted/50 overflow-hidden">
+      <section className="py-16 md:py-24  overflow-hidden">
         <style>{`
           @keyframes float-slow {
             0%, 100% { transform: translateY(0px); }
@@ -205,11 +201,7 @@ const Home = () => {
             0%, 100% { transform: translateY(0px); }
             50% { transform: translateY(-10px); }
           }
-          @keyframes pulse-ring {
-            0% { box-shadow: 0 0 0 0 hsl(186 100% 42% / 0.25); }
-            70% { box-shadow: 0 0 0 15px hsl(186 100% 42% / 0); }
-            100% { box-shadow: 0 0 0 0 hsl(186 100% 42% / 0); }
-          }
+          
           .bubble-float-1 { animation: float-slow 6s ease-in-out infinite; }
           .bubble-float-2 { animation: float-medium 5s ease-in-out infinite 0.5s; }
           .bubble-float-3 { animation: float-fast 7s ease-in-out infinite 1s; }
@@ -243,56 +235,56 @@ const Home = () => {
           </div>
 
           {/* Bubble container */}
-          <div className="relative min-h-[320px] sm:min-h-[400px] md:min-h-[480px] lg:min-h-[420px]">
+          <div className="relative min-h-[320px] sm:min-h-[400px] md:min-h-[480px] xl:min-h-[420px]">
             {/* Decorative background bubbles */}
-            <div className="bubble-deco w-[180px] h-[180px] -top-5 left-[18%] hidden md:block" />
-            <div className="bubble-deco w-[120px] h-[120px] top-1/2 right-[20%] hidden md:block" />
-            <div className="bubble-deco w-[90px] h-[90px] bottom-0 left-[30%] hidden md:block" />
-            <div className="bubble-deco w-[67px] h-[67px] top-4 right-[25%] hidden md:block" />
+            <div className="bubble-deco w-[180px] h-[180px] -top-5 left-[18%] hidden xl:block" />
+            <div className="bubble-deco w-[120px] h-[120px] top-1/2 right-[20%] hidden xl:block" />
+            <div className="bubble-deco w-[90px] h-[90px] bottom-0 left-[30%] hidden xl:block" />
+            <div className="bubble-deco w-[67px] h-[67px] top-4 right-[25%] hidden xl:block" />
 
             {/* Feature bubbles — responsive grid on small, positioned on large */}
-            <div className="grid grid-cols-2 gap-6 sm:gap-8 lg:block">
+            <div className="grid grid-cols-2 gap-6 sm:gap-8 xl:block">
               {[
                 {
                   icon: Video,
                   title: "Video Guides",
                   description: "Step-by-step video tutorials from experts",
                   floatClass: "bubble-float-1",
-                  lgPosition: "lg:absolute lg:top-[15%] lg:left-[36%]",
+                  positionClass: "xl:absolute xl:top-[15%] xl:left-[36%]",
                   gradient: "bubble-gradient-1",
-                  size: "w-[150px] h-[150px] sm:w-[170px] sm:h-[170px] md:w-[200px] md:h-[200px]",
+                  size: "w-[150px] h-[150px] sm:w-[170px] sm:h-[170px] md:w-[250px] md:h-[250px] lg:w-[300px] lg:h-[300px] xl:w-[200px] xl:h-[200px]",
                 },
                 {
                   icon: BookOpen,
                   title: "Text Guides",
                   description: "Detailed written guides for all topics",
                   floatClass: "bubble-float-2",
-                  lgPosition: "lg:absolute lg:top-[-4%] lg:right-[35%]",
+                  positionClass: "xl:absolute xl:top-[-4%] xl:right-[35%]",
                   gradient: "bubble-gradient-2",
-                  size: "w-[150px] h-[150px] sm:w-[170px] sm:h-[170px] md:w-[220px] md:h-[220px]",
+                  size: "w-[150px] h-[150px] sm:w-[170px] sm:h-[170px] md:w-[250px] md:h-[250px] lg:w-[300px] lg:h-[300px] xl:w-[220px] xl:h-[220px]",
                 },
                 {
                   icon: Users,
                   title: "Community",
                   description: "Connect with fellow aquarists worldwide",
                   floatClass: "bubble-float-3",
-                  lgPosition: "lg:absolute lg:bottom-[2%] lg:left-[40%]",
+                  positionClass: "xl:absolute xl:bottom-[2%] xl:left-[40%]",
                   gradient: "bubble-gradient-3",
-                  size: "w-[150px] h-[150px] sm:w-[170px] sm:h-[170px] md:w-[185px] md:h-[185px]",
+                  size: "w-[150px] h-[150px] sm:w-[170px] sm:h-[170px] md:w-[250px] md:h-[250px] lg:w-[300px] lg:h-[300px] xl:w-[185px] xl:h-[185px]",
                 },
                 {
                   icon: MessageSquare,
                   title: "Live Chat",
                   description: "Real-time discussions and support",
                   floatClass: "bubble-float-4",
-                  lgPosition: "lg:absolute lg:bottom-[0%] lg:right-[30%]",
+                  positionClass: "xl:absolute xl:bottom-[0%] xl:right-[30%]",
                   gradient: "bubble-gradient-4",
-                  size: "w-[150px] h-[150px] sm:w-[170px] sm:h-[170px] md:w-[250px] md:h-[250px]",
+                  size: "w-[150px] h-[150px] sm:w-[170px] sm:h-[170px] md:w-[250px] md:h-[250px] lg:w-[300px] lg:h-[300px] xl:w-[250px] xl:h-[250px]",
                 },
               ].map((feature, index) => (
                 <div
                   key={index}
-                  className={`flex justify-center lg:justify-start ${feature.lgPosition}`}
+                  className={`flex justify-center xl:justify-start ${feature.positionClass}`}
                 >
                   <div
                     className={`
@@ -329,6 +321,9 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/*solve the jigsaw puzzle secction*/}
+      <JigsawPuzzle />
 
       {/* Featured Content */}
       <section className="py-12 md:py-16">
@@ -403,63 +398,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Aquarist Tools */}
-      <section className="py-12 md:py-16 bg-muted/50">
-        <div className="container mx-auto px-4">
-          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 md:mb-12">
-            Aquarist Tools
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-            <TankVolumeCalculator>
-              <Card className="hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer">
-                <CardHeader>
-                  <Calculator className="h-10 w-10 text-primary mb-3" />
-                  <CardTitle className="text-lg">
-                    Tank Volume Calculator
-                  </CardTitle>
-                  <CardDescription>
-                    Calculate your tank capacity
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-            </TankVolumeCalculator>
-
-            <WaterParameters>
-              <Card className="hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer">
-                <CardHeader>
-                  <Droplets className="h-10 w-10 text-primary mb-3" />
-                  <CardTitle className="text-lg">Water Parameters</CardTitle>
-                  <CardDescription>
-                    Check ideal ranges for your fish species
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-            </WaterParameters>
-
-            <FeedingSchedule>
-              <Card className="hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer">
-                <CardHeader>
-                  <Calendar className="h-10 w-10 text-primary mb-3" />
-                  <CardTitle className="text-lg">Feeding Schedule</CardTitle>
-                  <CardDescription>Plan your feeding routine</CardDescription>
-                </CardHeader>
-              </Card>
-            </FeedingSchedule>
-
-            <Link to="/species-dictionary">
-              <Card className="hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer">
-                <CardHeader>
-                  <Fish className="h-10 w-10 text-primary mb-3" />
-                  <CardTitle className="text-lg">
-                    Species Compatibility
-                  </CardTitle>
-                  <CardDescription>Check fish compatibility</CardDescription>
-                </CardHeader>
-              </Card>
-            </Link>
-          </div>
-        </div>
-      </section>
 
       {/* Latest Posts */}
       <section className="py-12 md:py-16">
