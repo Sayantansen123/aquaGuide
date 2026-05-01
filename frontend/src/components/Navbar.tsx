@@ -19,7 +19,7 @@ import ChangePasswordModal from "./ChangePasswordModal";
 import { authApi } from "@/api/modules/auth";
 
 const Navbar = () => {
-  const [theme, setTheme] = useState<"light" | "dark">("dark");
+  const [theme, setTheme] = useState<"light" | "dark">("light");
   const [isOpen, setIsOpen] = useState(false);
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
   const role = useSelector((state: RootState) => state.user.role);

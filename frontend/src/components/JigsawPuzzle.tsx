@@ -14,7 +14,34 @@ const P_BR = `M0,0 L35,0 C32,0 28,2 28,8 C28,18 38,22 50,22 C62,22 72,18 72,8 C7
 
 const paths = [P_TL, P_TR, P_BL, P_BR];
 const viewBox = `-4 -4 ${VB} ${VB}`;
-const labels = ["Care", "Community", "Knowledge", "Passion"];
+
+// Each round has a different image, piece labels, and completion message
+const rounds = [
+  {
+    image: "/jigsaw.jpg",
+    labels: ["Care", "Community", "Knowledge", "Passion"],
+    title: "You Completed It!",
+    message: "Great pet care comes from Care, Community, Knowledge, and Passion.",
+  },
+  {
+    image: "/jigsaw2.jpg",
+    labels: ["Love", "Trust", "Joy", "Bond"],
+    title: "Puzzle Solved!",
+    message: "Every pet deserves Love, Trust, Joy, and a lifelong Bond.",
+  },
+  {
+    image: "/jigsaw3.jpg",
+    labels: ["Feed", "Play", "Train", "Heal"],
+    title: "Well Done!",
+    message: "The pillars of pet wellness: Feed well, Play often, Train gently, Heal with care.",
+  },
+  {
+    image: "/jigsaw4.jpg",
+    labels: ["Explore", "Learn", "Share", "Grow"],
+    title: "Amazing!",
+    message: "Your journey with pets is about Exploring, Learning, Sharing, and Growing together.",
+  },
+];
 
 
 const lightFills = ["#E8524A", "#F0A830", "#E88DA0", "#2AA5A0"];
@@ -42,7 +69,9 @@ export function JigsawPuzzle() {
   const cRef = useRef<HTMLDivElement>(null);
   const drag = useRef<{ i: number; ox: number; oy: number } | null>(null);
   const [dark, setDark] = useState(false);
+  const [roundIdx, setRoundIdx] = useState(0);
   const resp = useResponsive();
+  const round = rounds[roundIdx];
 
   useEffect(() => {
     const check = () => setDark(document.documentElement.classList.contains("dark"));
@@ -118,7 +147,7 @@ export function JigsawPuzzle() {
     });
   };
 
-  const reset = () => { setDone(false); setShowMsg(false); setPcs(scatter()); };
+  const reset = () => { setDone(false); setShowMsg(false); setRoundIdx(prev => (prev + 1) % rounds.length); setPcs(scatter()); };
 
   const areaW = basePixel * 2 + resp.padX;
   const areaH = basePixel * 2 + resp.padY;
@@ -170,7 +199,7 @@ export function JigsawPuzzle() {
                   <g clipPath={`url(#jpc${i})`}>
                     {/* Background image — offset so each piece shows its quadrant */}
                     <image
-                      href="/jigsaw.jpg"
+                      href={round.image}
                       x={i === 1 || i === 3 ? -BASE : 0}
                       y={i === 2 || i === 3 ? -BASE : 0}
                       width={BASE * 2}
@@ -182,7 +211,7 @@ export function JigsawPuzzle() {
                   </g>
                   <path d={paths[i]} fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="2" strokeLinejoin="round" />
 
-                  <text x="50" y="64" textAnchor="middle" fontSize={resp.fontSize.label} fontWeight="bold" fill="white" dominantBaseline="central" style={{ textShadow: "0 1px 3px rgba(0,0,0,0.5)" }}>{labels[i]}</text>
+                  <text x="50" y="64" textAnchor="middle" fontSize={resp.fontSize.label} fontWeight="bold" fill="white" dominantBaseline="central" style={{ textShadow: "0 1px 3px rgba(0,0,0,0.5)" }}>{round.labels[i]}</text>
                   {pc.placed && <text x="50" y="78" textAnchor="middle" fontSize={resp.fontSize.check} fill="rgba(255,255,255,.8)" dominantBaseline="central">✓ Placed</text>}
                 </svg>
               </div>
@@ -197,10 +226,10 @@ export function JigsawPuzzle() {
                   } ${showMsg ? "opacity-100 scale-100" : "opacity-0 scale-90"}`}>
 
                   <h3 className={`text-lg sm:text-xl md:text-2xl lg:text-3xl font-extrabold mb-2 sm:mb-3 ${dark ? "text-white" : "text-[hsl(6,27%,23%)]"}`}>
-                    You Completed It!
+                    {round.title}
                   </h3>
                   <p className={`text-xs sm:text-sm md:text-base max-w-xs mx-auto leading-relaxed mb-4 sm:mb-6 ${dark ? "text-white/80" : "text-[hsl(6,27%,23%)]/80"}`}>
-                    Just like this puzzle, great pet care comes from <strong>Care</strong>, <strong>Community</strong>, <strong>Knowledge</strong>, and <strong>Passion</strong>
+                    {round.message}
                   </p>
                   <button onClick={reset} className={`px-5 py-2 sm:px-6 sm:py-2.5 rounded-full font-semibold text-xs sm:text-sm border transition-all duration-300 hover:scale-105 active:scale-95 ${dark
                     ? "bg-white/15 hover:bg-white/25 text-white border-white/25"
