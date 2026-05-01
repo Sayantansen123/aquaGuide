@@ -14,10 +14,6 @@ import {
   BookOpen,
   Users,
   MessageSquare,
-  Calculator,
-  Droplets,
-  Calendar,
-  Fish,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
