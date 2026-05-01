@@ -28,7 +28,7 @@ const SecondaryNav = () => {
     navItems.find((item) => item.path === location.pathname) || navItems[0];
 
   return (
-    <nav className="border-b bg-card fixed top-[66px] w-[100vw] z-[12]">
+    <nav className="border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 fixed top-[75px] w-[100vw] z-[12]">
       <div className="container mx-auto px-4">
         {/* Mobile & Tablet Dropdown */}
         <div className="lg:hidden py-2">
@@ -50,7 +50,7 @@ const SecondaryNav = () => {
                     className={cn(
                       "w-full cursor-pointer",
                       location.pathname === item.path &&
-                        "bg-accent text-accent-foreground font-medium"
+                      "bg-accent text-accent-foreground font-medium"
                     )}
                   >
                     {item.name}

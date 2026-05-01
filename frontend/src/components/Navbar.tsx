@@ -3,11 +3,12 @@ import { Search, Moon, Sun, Menu, X, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { RootState } from "@/store/store";
 import { useDispatch, useSelector } from "react-redux";
 import { logout, setIsLoggedIn, setRole } from "@/store/userSlice";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -52,6 +53,36 @@ const Navbar = () => {
     setTheme(theme === "light" ? "dark" : "light");
   };
 
+  const [pos, setPos] = useState({ x: 0, y: 0, rotate: 0 });
+  const [isReturning, setIsReturning] = useState(false);
+  const timeoutRef = useRef(null);
+
+  const moveRandom = () => {
+    clearTimeout(timeoutRef.current);
+
+    const randomX = Math.floor(Math.random() * 60) - 30;
+    const randomY = Math.floor(Math.random() * 60) - 30;
+    const randomRotate = Math.floor(Math.random() * 60) - 30;
+
+    setIsReturning(false);
+
+    setPos({
+      x: randomX,
+      y: randomY,
+      rotate: randomRotate,
+    });
+
+    // after 3 sec no hover => come back
+    timeoutRef.current = setTimeout(() => {
+      setIsReturning(true);
+      setPos({
+        x: 0,
+        y: 0,
+        rotate: 0,
+      });
+    }, 3000);
+  };
+
   return (
     <>
       <nav className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
@@ -59,13 +90,40 @@ const Navbar = () => {
           <div className="flex items-center justify-between gap-4">
             <Link
               to="/"
-              className="text-xl md:text-2xl font-bold ocean-gradient bg-clip-text text-transparent"
+              className="text-xl flex gap-1 md:text-2xl items-center font-bold ocean-gradient bg-clip-text text-transparent relative"
             >
-              Aqua Guide
+              <motion.img
+                src="./icon.png"
+                className="w-[55px] h-[55px] relative"
+                alt=""
+                onMouseEnter={moveRandom}
+                animate={{
+                  x: pos.x,
+                  y: pos.y,
+                  rotate: pos.rotate,
+                }}
+                transition={
+                  isReturning
+                    ? {
+                      type: "spring",
+                      stiffness: 250,
+                      damping: 7,
+                    }
+                    : {
+                      type: "spring",
+                      stiffness: 180,
+                      damping: 10,
+                    }
+                }
+                whileHover={{
+                  scale: 1.1,
+                }}
+              />
+              KnowYourPet
             </Link>
 
             {/* Desktop Search */}
-            <div className="hidden md:flex flex-1 max-w-md mx-4">
+            {/* <div className="hidden md:flex flex-1 max-w-md mx-4">
               <div className="relative w-full">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -74,7 +132,7 @@ const Navbar = () => {
                   className="pl-10"
                 />
               </div>
-            </div>
+            </div> */}
 
             {/* Desktop Actions */}
             <div className="hidden md:flex items-center gap-2">
